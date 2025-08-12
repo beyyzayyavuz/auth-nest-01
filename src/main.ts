@@ -14,7 +14,7 @@ async function bootstrap() {
   await app.listen(3000);
   logger.log('Application is running on: http://localhost:3000');
   app.enableCors({
-    origin: ['http://localhost:4200'], //only when frontend is the case, or for whatever you're planning to implement.
+    origin: ['http://localhost:4200'], //only when frontend is the case, or whatever you're planning to implement.
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
