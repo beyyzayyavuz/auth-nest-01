@@ -13,4 +13,20 @@ model User {
   password     String
   refreshToken String?  
   createdAt    DateTime @default(now())
+  lockedUntil    DateTime?   
+}
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  email     String
+  ip        String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ip, createdAt])
+}
+
+model IpBlock {
+  ip          String   @id
+  blockUntil  DateTime
 }
