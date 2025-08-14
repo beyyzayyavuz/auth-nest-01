@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
   UnauthorizedException,
@@ -30,7 +29,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  // ---- REGISTER ----
   async register(email: string, password: string) {
     this.logger.debug(`Register attempt email=${email}`);
 
@@ -50,13 +48,12 @@ export class AuthService {
     return tokens; // { accessToken, refreshToken }
   }
 
-  // ---- LOGIN (gelişmiş) ----
   async login(email: string, password: string, ip: string) {
     this.logger.debug(`Login attempt email=${email} ip=${ip}`);
 
     const now = new Date();
 
-    // 0) IP kara listede mi?
+    // is ip on the blacklist?
     const ipBlock = await this.prisma.ipBlock.findUnique({ where: { ip } });
     if (ipBlock && ipBlock.blockUntil > now) {
       this.logger.warn(`Blocked IP attempted login: ${ip}`);
@@ -66,7 +63,7 @@ export class AuthService {
       );
     }
 
-    // 1) Kullanıcı + hesap kilidi
+    // user and account locking
     const user = await this.userService.findUserByEmail(email);
     if (user?.lockedUntil && user.lockedUntil > now) {
       this.logger.warn(
@@ -77,7 +74,7 @@ export class AuthService {
       );
     }
 
-    // 2) IP kısa pencere
+    // ip kısa pencere
     const ipWindowStart = new Date(Date.now() - IP_WINDOW_SEC * 1000);
     const recentIpFails = await this.prisma.loginAttempt.count({
       where: { ip, success: false, createdAt: { gte: ipWindowStart } },
@@ -95,7 +92,7 @@ export class AuthService {
       );
     }
 
-    // 3) Kullanıcı pencere
+    // kullanıcı pencere
     const userWindowStart = new Date(Date.now() - USER_WINDOW_MIN * 60 * 1000);
     const recentUserFails = await this.prisma.loginAttempt.count({
       where: { email, success: false, createdAt: { gte: userWindowStart } },
@@ -108,7 +105,7 @@ export class AuthService {
       throw new ForbiddenException('Account temporarily locked');
     }
 
-    // 4) Çoklu IP tespiti
+    // 4) multi-ip test
     const distinctWindowStart = new Date(
       Date.now() - DISTINCT_IP_WINDOW_MIN * 60 * 1000,
     );
@@ -118,12 +115,12 @@ export class AuthService {
     });
     const uniqueIpCount = new Set(attempts.map((a) => a.ip)).size;
     if (uniqueIpCount >= DISTINCT_IP_LIMIT && user) {
-      // 4a) Hesabı kilitle
+      // lock the account
       await this.userService.updateUser(user.id, {
         lockedUntil: new Date(Date.now() + LOCK_MIN * 60 * 1000),
       });
 
-      // 4b) Saldıran tüm IP’leri (benzersiz) kara listeye ekle
+      // put the malicious ips on the blacklist
       const blockUntil = new Date(Date.now() + 60 * 1000); // örn. 60 sn
       const uniqueIps = Array.from(new Set(attempts.map((a) => a.ip)));
 
@@ -141,7 +138,7 @@ export class AuthService {
       );
     }
 
-    // 5) Parola doğrulama
+    // passporw verification
     if (!user || !(await bcrypt.compare(password, user.password))) {
       await this.prisma.loginAttempt.create({
         data: { email, ip, success: false },
@@ -150,7 +147,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 6) Başarılı giriş
+    // success login
     await this.prisma.$transaction(async (tx) => {
       await tx.loginAttempt.create({
         data: { email, ip, success: true },
@@ -162,7 +159,7 @@ export class AuthService {
       });
     });
 
-    // 7) Token + refresh kaydet
+    // Token + refresh saving
     const tokens = this.generateTokens(user.id, user.email);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
@@ -170,7 +167,6 @@ export class AuthService {
     return tokens;
   }
 
-  // ---- REFRESH ----
   async refreshAccessToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
@@ -202,14 +198,12 @@ export class AuthService {
     }
   }
 
-  // ---- LOGOUT ----
   async logout(userId: number) {
     await this.userService.updateUser(userId, { refreshToken: null });
     this.logger.log(`Logout success id=${userId}`);
     return { message: 'Logged out successfully' };
   }
 
-  // ---- Helpers ----
   private generateTokens(userId: number, email: string) {
     const payload = { sub: userId, email };
 
