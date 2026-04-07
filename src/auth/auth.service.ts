@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 
 const IP_WINDOW_SEC = 60;
 const IP_FAIL_LIMIT = 5;
@@ -27,6 +28,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly configService: ConfigService, // ConfigService eklendi
   ) {}
 
   async register(email: string, password: string) {
@@ -50,10 +52,10 @@ export class AuthService {
 
   async login(email: string, password: string, ip: string) {
     this.logger.debug(`Login attempt email=${email} ip=${ip}`);
-
     const now = new Date();
 
-    // is ip on the blacklist?
+    /*
+    // IP kontrolü
     const ipBlock = await this.prisma.ipBlock.findUnique({ where: { ip } });
     if (ipBlock && ipBlock.blockUntil > now) {
       this.logger.warn(`Blocked IP attempted login: ${ip}`);
@@ -62,10 +64,10 @@ export class AuthService {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-
-    // user and account locking
+*/
+    // Kullanıcı kilidi kontrolü
     const user = await this.userService.findUserByEmail(email);
-    if (user?.lockedUntil && user.lockedUntil > now) {
+    /*if (user?.lockedUntil && user.lockedUntil > now) {
       this.logger.warn(
         `Account locked (email=${email}) until ${user.lockedUntil.toISOString()}`,
       );
@@ -74,7 +76,7 @@ export class AuthService {
       );
     }
 
-    // ip kısa pencere
+    // IP kısa pencere kontrolü
     const ipWindowStart = new Date(Date.now() - IP_WINDOW_SEC * 1000);
     const recentIpFails = await this.prisma.loginAttempt.count({
       where: { ip, success: false, createdAt: { gte: ipWindowStart } },
@@ -92,7 +94,7 @@ export class AuthService {
       );
     }
 
-    // kullanıcı pencere
+    // Kullanıcı pencere kontrolü
     const userWindowStart = new Date(Date.now() - USER_WINDOW_MIN * 60 * 1000);
     const recentUserFails = await this.prisma.loginAttempt.count({
       where: { email, success: false, createdAt: { gte: userWindowStart } },
@@ -105,7 +107,7 @@ export class AuthService {
       throw new ForbiddenException('Account temporarily locked');
     }
 
-    // 4) multi-ip test
+    // Multi-IP kontrolü
     const distinctWindowStart = new Date(
       Date.now() - DISTINCT_IP_WINDOW_MIN * 60 * 1000,
     );
@@ -115,15 +117,12 @@ export class AuthService {
     });
     const uniqueIpCount = new Set(attempts.map((a) => a.ip)).size;
     if (uniqueIpCount >= DISTINCT_IP_LIMIT && user) {
-      // lock the account
       await this.userService.updateUser(user.id, {
         lockedUntil: new Date(Date.now() + LOCK_MIN * 60 * 1000),
       });
 
-      // put the malicious ips on the blacklist
-      const blockUntil = new Date(Date.now() + 60 * 1000); // örn. 60 sn
+      const blockUntil = new Date(Date.now() + 60 * 1000);
       const uniqueIps = Array.from(new Set(attempts.map((a) => a.ip)));
-
       for (const ipAddr of uniqueIps) {
         await this.prisma.ipBlock.upsert({
           where: { ip: ipAddr },
@@ -136,9 +135,9 @@ export class AuthService {
       throw new ForbiddenException(
         'Account temporarily locked due to suspicious activity',
       );
-    }
+    }*/
 
-    // passporw verification
+    // Şifre kontrolü
     if (!user || !(await bcrypt.compare(password, user.password))) {
       await this.prisma.loginAttempt.create({
         data: { email, ip, success: false },
@@ -147,19 +146,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // success login
+    // Başarılı login
     await this.prisma.$transaction(async (tx) => {
-      await tx.loginAttempt.create({
-        data: { email, ip, success: true },
-      });
-
+      await tx.loginAttempt.create({ data: { email, ip, success: true } });
       await tx.user.update({
         where: { id: user.id },
         data: { lockedUntil: null },
       });
     });
 
-    // Token + refresh saving
     const tokens = this.generateTokens(user.id, user.email);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
@@ -170,14 +165,12 @@ export class AuthService {
   async refreshAccessToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
       const user = await this.userService.findUserById(payload.sub);
       if (!user || !user.refreshToken) {
-        this.logger.warn(
-          `Refresh failed: user or token not found (sub=${payload.sub})`,
-        );
+        this.logger.warn(`Refresh failed: user or token not found (sub=${payload.sub})`);
         throw new UnauthorizedException('User or refresh token not found');
       }
 
@@ -208,12 +201,12 @@ export class AuthService {
     const payload = { sub: userId, email };
 
     const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
+      secret: this.configService.get<string>('JWT_SECRET'),
       expiresIn: '1h',
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: '7d',
     });
 
@@ -222,8 +215,6 @@ export class AuthService {
 
   private async saveRefreshToken(userId: number, refreshToken: string) {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.userService.updateUser(userId, {
-      refreshToken: hashedRefreshToken,
-    });
+    await this.userService.updateUser(userId, { refreshToken: hashedRefreshToken });
   }
 }

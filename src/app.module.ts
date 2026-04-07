@@ -1,26 +1,26 @@
-// src/app.module.ts
-import { Module } from '@nestjs/common';
-import { UserModule } from './user/user.module';
-import { PrismaModule } from './prisma/prisma.module'; //sonra eklendi blacklist için.
-
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { UserModule } from './user/user.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { LogsModule } from './logs/logs.module';
+
+
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }), // global
+    LogsModule,
     AuthModule,
     UserModule,
     PrismaModule,
-    ThrottlerModule.forRoot({
-      ttl: 60,
-      limit: 1000,
-    }),
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(RequestLoggerMiddleware)
+      .forRoutes('*');
+    
+  }
+}

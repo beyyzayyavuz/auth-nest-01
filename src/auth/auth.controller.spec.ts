@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
+import { beforeEach, describe, it } from 'node:test';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -16,3 +17,8 @@ describe('AuthController', () => {
     expect(controller).toBeDefined();
   });
 });
+
+function expect(controller: AuthController) {
+  throw new Error('Function not implemented.');
+}
+

@@ -30,3 +30,23 @@ model IpBlock {
   ip          String   @id
   blockUntil  DateTime
 }
+
+model RequestLog {
+  id              Int      @id @default(autoincrement())
+  correlationId   String   @db.Uuid // Unique kısıtını kaldırabiliriz, bazen retry durumlarında hata vermesin
+  clientHash      String   
+  ip              String
+  userAgent       String   
+  method          String
+  routeTemplate   String   // Örn: /user/profile/:id
+  url             String   @db.Text
+  statusCode      Int
+  responseTimeMs  Float    
+  payloadSize     Int      @default(0) 
+  headerSize      Int
+  trafficLabel    String   @default("unlabeled")
+  timestamp       DateTime @default(now())
+
+  @@index([clientHash])    
+  @@index([timestamp])     
+}
