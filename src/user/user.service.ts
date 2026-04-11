@@ -64,4 +64,17 @@ export class UserService {
   async deleteUser(userId: number) {
     return this.prisma.user.delete({ where: { id: userId } });
   }
+  async simulateSearch(query: string) {
+  // Veritabanını biraz yormak için LIKE sorgusu atıyoruz
+  // Bu, basit bir ID sorgusundan daha fazla CPU ve I/O tüketir.
+  return this.prisma.user.findMany({
+    where: {
+      email: {
+        contains: query, // email içinde arama yapar
+        mode: 'insensitive',
+      },
+    },
+    take: 100, // Çok veri çekerek payload size'ı da artırırız
+  });
+}
 }

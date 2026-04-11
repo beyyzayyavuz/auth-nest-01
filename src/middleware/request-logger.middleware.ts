@@ -12,11 +12,26 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     // 1. Hassas zaman başlatma (ms bazında ölçüm için)
     const start = process.hrtime();
     const correlationId = uuidv4();
+    //ypp
+    const startTime = Date.now();
+    
 
     res.on('finish', () => {
       // 2. Response Time Hesaplama
       const diff = process.hrtime(start);
       const responseTimeMs = parseFloat((diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3));
+//yppp
+      const duration = Date.now() - startTime;
+      // 1. Label'ı al
+const rawLabel = req.headers['x-simulation-label'];
+
+// 2. Eğer dizi gelirse ilk elemanı al, gelmezse kendisini al, hiç yoksa 'unknown' de
+const label = Array.isArray(rawLabel) ? rawLabel[0] : (rawLabel || 'unknown');
+
+// 3. Şimdi güvenle toUpperCase kullanabilirsin!
+console.log(
+  `[${label.toUpperCase()}] ${req.method} ${req.url} => Status: ${res.statusCode} (${duration}ms)`
+);
 
       // 3. IP ve User-Agent Yakalama
       const userAgent = req.headers['user-agent'] || 'unknown';
@@ -55,6 +70,8 @@ export class RequestLoggerMiddleware implements NestMiddleware {
         console.error('[Middleware Error] Log could not be passed to service:', err.message);
       });
     });
+    
+    
 
     next();
   }

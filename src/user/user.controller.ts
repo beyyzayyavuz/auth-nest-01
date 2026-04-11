@@ -6,6 +6,7 @@ import {
   Get,
   Patch,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -43,4 +44,8 @@ export class UserController {
   async deleteAccount(@Request() req) {
     return this.userService.deleteUser(req.user.userId);
   }
+  @Get('search')
+  async search(@Query('q') q: string) {
+    return this.userService.simulateSearch(q || '');
+}
 }
