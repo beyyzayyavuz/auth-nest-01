@@ -9,70 +9,107 @@ export class RequestLoggerMiddleware implements NestMiddleware {
   constructor(private logsService: LogsService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    // 1. Hassas zaman başlatma (ms bazında ölçüm için)
     const start = process.hrtime();
     const correlationId = uuidv4();
-    //ypp
     const startTime = Date.now();
-    
 
     res.on('finish', () => {
-      // 2. Response Time Hesaplama
       const diff = process.hrtime(start);
-      const responseTimeMs = parseFloat((diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3));
-//yppp
+      const responseTimeMs = parseFloat(
+        (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3),
+      );
+
       const duration = Date.now() - startTime;
-      // 1. Label'ı al
-const rawLabel = req.headers['x-simulation-label'];
 
-// 2. Eğer dizi gelirse ilk elemanı al, gelmezse kendisini al, hiç yoksa 'unknown' de
-const label = Array.isArray(rawLabel) ? rawLabel[0] : (rawLabel || 'unknown');
+      const rawLabel = req.headers['x-simulation-label'];
+      const label = Array.isArray(rawLabel)
+        ? rawLabel[0]
+        : (rawLabel || 'unknown');
 
-// 3. Şimdi güvenle toUpperCase kullanabilirsin!
-console.log(
-  `[${label.toUpperCase()}] ${req.method} ${req.url} => Status: ${res.statusCode} (${duration}ms)`
-);
+      console.log(
+        `[${String(label).toUpperCase()}] ${req.method} ${req.url} => Status: ${res.statusCode} (${duration}ms)`,
+      );
 
-      // 3. IP ve User-Agent Yakalama
-      const userAgent = req.headers['user-agent'] || 'unknown';
-      const ip = (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress || 'unknown';
+      const userAgent = Array.isArray(req.headers['user-agent'])
+        ? req.headers['user-agent'][0]
+        : (req.headers['user-agent'] || 'unknown');
 
-      // 4. Client Fingerprint (IAT Analizi için kritik)
-      // IP ve User-Agent'ı birleştirip hash'liyoruz
+      const ip = this.resolveClientIp(req);
+
       const clientHash = crypto
         .createHash('md5')
-        .update(ip + userAgent)
+        .update(`${String(ip)}|${String(userAgent)}`)
         .digest('hex');
 
-      // 5. Route Template (Maliyet Analizi için kritik)
-      // NestJS route yapısını (/user/:id gibi) yakalamaya çalışır, yoksa ham URL'i temizler
-      const routeTemplate = req.route ? req.route.path : req.originalUrl.split('?')[0];
+      const routeTemplate =
+        req.baseUrl && req.route?.path
+          ? `${req.baseUrl}${req.route.path}`
+          : req.route?.path || req.originalUrl.split('?')[0];
 
-      // 6. Veriyi Hazırlama (Prisma Modelinle Birebir Uyumlu)
       const logEntry = {
         correlationId,
         clientHash,
         ip,
-        userAgent,
+        userAgent: String(userAgent),
         method: req.method,
         routeTemplate,
         url: req.originalUrl,
         statusCode: res.statusCode,
         responseTimeMs,
-        payloadSize: parseInt(req.headers['content-length'] || '0'),
+        payloadSize: parseInt(String(req.headers['content-length'] || '0'), 10),
         headerSize: JSON.stringify(req.headers).length,
-        trafficLabel: (req.headers['x-simulation-label'] as string) || 'unlabeled',
+        trafficLabel: String(label || 'unlabeled'),
         timestamp: new Date(),
       };
 
-      // 7. Servise Gönder (Asenkron ve Batch işleme uygun)
       this.logsService.saveLog(logEntry).catch((err) => {
-        console.error('[Middleware Error] Log could not be passed to service:', err.message);
+        console.error(
+          '[Middleware Error] Log could not be passed to service:',
+          err.message,
+        );
       });
     });
-    
-    
 
     next();
+  }
+
+  private resolveClientIp(req: Request): string {
+    const allowTestIpHeader = process.env.ALLOW_TEST_IP_HEADER === 'true';
+
+    const rawTestClientIp = req.headers['x-test-client-ip'];
+    const testClientIp = Array.isArray(rawTestClientIp)
+      ? rawTestClientIp[0]?.trim()
+      : String(rawTestClientIp || '').trim();
+
+    const rawForwardedFor = req.headers['x-forwarded-for'];
+    const forwardedFor = Array.isArray(rawForwardedFor)
+      ? rawForwardedFor[0]
+      : rawForwardedFor;
+
+    const forwardedIp = forwardedFor
+      ? String(forwardedFor).split(',')[0].trim()
+      : undefined;
+
+    const validTestIp =
+      allowTestIpHeader && this.isValidIpv4(testClientIp)
+        ? testClientIp
+        : undefined;
+
+    return (
+      validTestIp ||
+      forwardedIp ||
+      req.ip ||
+      req.socket.remoteAddress ||
+      'unknown'
+    );
+  }
+
+  private isValidIpv4(ip?: string): boolean {
+    if (!ip) return false;
+
+    const ipv4Regex =
+      /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+
+    return ipv4Regex.test(ip);
   }
 }

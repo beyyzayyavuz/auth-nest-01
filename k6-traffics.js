@@ -138,13 +138,14 @@ function chooseJourney() {
 }
 
 function buildBaseHeaders() {
-  const fakeIp = `192.168.1.${(exec.vu.idInTest % 254) + 1}`;
+  const fakeIp = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
 
   return {
     'Content-Type': 'application/json',
     'x-simulation-label': 'normal_user',
     'User-Agent': pickUA(),
-    'X-Forwarded-For': fakeIp,
+    //'X-Forwarded-For': fakeIp,
+    'x-test-client-ip': fakeIp,
   };
 }
 
