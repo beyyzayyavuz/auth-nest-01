@@ -33,20 +33,147 @@ model IpBlock {
 
 model RequestLog {
   id              Int      @id @default(autoincrement())
-  correlationId   String   @db.Uuid // Unique kısıtını kaldırabiliriz, bazen retry durumlarında hata vermesin
-  clientHash      String   
+  correlationId   String   @db.Uuid
+  clientHash      String
   ip              String
-  userAgent       String   
+  ipSubnet24      String?  // network(set_masklen(ip, 24)) — Day 3'te middleware doldurur
+  userAgent       String
+  uaFamily        String?  // Day 3: ua-parser-js ile türetilir
+  uaRawHash       String?  // sha256(userAgent), cardinality için
   method          String
-  routeTemplate   String   // Örn: /user/profile/:id
+  routeTemplate   String
   url             String   @db.Text
+  queryStrLen     Int      @default(0)
+  bodyLenReceived Int      @default(0)
   statusCode      Int
-  responseTimeMs  Float    
-  payloadSize     Int      @default(0) 
+  responseTimeMs  Float
+  payloadSize     Int      @default(0)
   headerSize      Int
+  headerCount     Int      @default(0)
+  refererPresent  Boolean  @default(false)
+  cookiePresent   Boolean  @default(false)
+  acceptLangPresent Boolean @default(false)
+  acceptEncPresent  Boolean @default(false)
+  acceptSetHash   String?
+
+  // Backend cost (Day 3: Prisma $on('query') hook + process.cpuUsage doldurur)
+  dbQueryCount    Int      @default(0)
+  dbTotalTimeMs   Float    @default(0)
+  cpuTimeMs       Float    @default(0)
+  externalCallCount Int    @default(0)
+
+  // Connection (nginx'ten gelir, Day 4: log ingester doldurur)
+  connId          String?
+  connRequestIndex Int?
+
+  // Session (Day 3: JWT subject veya clientHash fallback)
+  sessionIdHash   String?
+  loginPresent    Boolean  @default(false)
+
+  // Partial request flag — slowloris signature
+  partialRequest  Boolean  @default(false)
+
   trafficLabel    String   @default("unlabeled")
+  scenarioId      String?
   timestamp       DateTime @default(now())
 
-  @@index([clientHash])    
-  @@index([timestamp])     
+  @@index([clientHash])
+  @@index([timestamp])
+  @@index([ip, timestamp])
+  @@index([ipSubnet24, timestamp])
+  @@index([sessionIdHash, timestamp])
+  @@index([scenarioId, timestamp])
+  @@index([trafficLabel, timestamp])
+}
+
+model Scenario {
+  id                String    @id
+  name              String
+  description       String?
+  startedAt         DateTime
+  endedAt           DateTime?
+  legitimateWorkers Int?
+  floodWorkers      Int?
+  slowlorisWorkers  Int?
+  slowPostWorkers   Int?
+  notes             String?
+}
+
+model Connection {
+  id                    String   @id  // nginx $connection
+  scenarioId            String?
+  ip                    String
+  ipSubnet24            String?
+  tOpen                 DateTime
+  tClose                DateTime?
+  durationMs            Int?
+  requestCount          Int      @default(0)
+  keepaliveUsed         Boolean  @default(false)
+  meanRequestTimeMs     Float?
+  p95RequestTimeMs      Float?
+  maxRequestTimeMs      Float?
+  meanInboundByteRate   Float?
+  partialRequestCount   Int      @default(0)
+  timeoutRequestCount   Int      @default(0)
+  tlsVersion            String?
+  tlsCipher             String?
+
+  @@index([ip, tOpen])
+  @@index([ipSubnet24, tOpen])
+  @@index([scenarioId, tOpen])
+}
+
+model BehavioralSession {
+  // İsim çakışmasın diye 'BehavioralSession' (login session değil)
+  sessionIdHash         String   @id
+  scenarioId            String?
+  firstSeenIp           String?
+  distinctIps           Int      @default(1)
+  tFirstSeen            DateTime
+  tLastSeen             DateTime?
+  durationMs            Int?
+  requestCount          Int      @default(0)
+  uniqueEndpointCount   Int?
+  navigationDepth       Int?
+  loginPresent          Boolean  @default(false)
+  thinkTimeP50Ms        Int?
+
+  @@index([scenarioId, tFirstSeen])
+}
+
+model WindowLabel {
+  id                 Int      @id @default(autoincrement())
+  scenarioId         String
+  aggregationType    String   // 'src_ip' | 'src_subnet_24'
+  aggregationKey     String
+  windowStart        DateTime
+  windowEnd          DateTime
+  requestCountTotal  Int
+  requestCountAttack Int
+  attackRatio        Float
+  label              String
+
+  @@unique([scenarioId, aggregationType, aggregationKey, windowStart])
+  @@index([scenarioId, windowStart])
+  @@index([aggregationType, aggregationKey, windowStart])
+}
+
+model EndpointCostProfile {
+  routeTemplate            String   @id
+  method                   String
+  sampleCount              Int
+  meanDbTimeMs             Float
+  meanCpuTimeMs            Float
+  meanTotalCostMs          Float
+  p95TotalCostMs           Float
+  costQuartile             Int      // 1=cheapest, 4=most expensive
+  calibrationScenarioId    String?
+}
+
+model CalibrationBaseline {
+  name           String   @id
+  sourceDataset  String
+  parameters     Json
+  fitQuality     Json
+  createdAt      DateTime @default(now())
 }

@@ -28,6 +28,8 @@ const LABELS = {
 const normalLoginDuration = new Trend('mix_http_normal_login_duration', true);
 const normalProfileDuration = new Trend('mix_http_normal_profile_duration', true);
 const normalSearchDuration = new Trend('mix_http_normal_search_duration', true);
+const normalLogoutDuration = new Trend('mix_http_normal_logout_duration', true);
+
 const normalLogicalFailures = new Rate('mix_http_normal_logical_failures');
 const normalCompletedSessions = new Counter('mix_http_normal_completed_sessions');
 
@@ -53,6 +55,13 @@ const users = new SharedArray('users', function () {
     { email: 'user6@gmail.com', password: '5555' },
     { email: 'user7@gmail.com', password: '6666' },
     { email: 'user8@gmail.com', password: '7777' },
+    { email: 'user9@gmail.com', password: '8888' },
+    { email: 'user10@gmail.com', password: '9999' },
+    { email: 'user11@gmail.com', password: '101010' },
+    { email: 'user12@gmail.com', password: '121212' },
+    { email: 'user13@gmail.com', password: '131313' },
+    { email: 'user14@gmail.com', password: '141414' },
+    { email: 'user15@gmail.com', password: '151515' },
   ];
 });
 
@@ -117,6 +126,9 @@ function getScenarioConfig() {
 
 const cfg = getScenarioConfig();
 
+// ----------------------------------------------------
+// OPTIONS
+// ----------------------------------------------------
 export const options = {
   scenarios: {
     normal_user_mix_http: {
@@ -157,6 +169,10 @@ function randomItem(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function randomInt(min, maxInclusive) {
+  return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
+}
+
 function think(minSeconds, maxSeconds) {
   sleep(Math.random() * (maxSeconds - minSeconds) + minSeconds);
 }
@@ -169,13 +185,49 @@ function parseToken(res) {
   }
 }
 
-// ------------------ NORMAL SIDE ----------------------
-function pickLegitUser() {
-  return randomItem(users);
+// ====================================================
+// NORMAL SIDE (FIXED)
+// ====================================================
+let normalVuState = null;
+
+function getNormalVuState() {
+  if (normalVuState !== null) {
+    return normalVuState;
+  }
+
+  const vuNumber = exec.vu.idInTest || 1;
+  const userIndex = (vuNumber - 1) % users.length;
+  const uaIndex = (vuNumber - 1) % legitAgents.length;
+
+  normalVuState = {
+    vuNumber,
+    user: users[userIndex],
+    userAgent: legitAgents[uaIndex],
+    fakeIp: `192.168.20.${((vuNumber - 1) % 253) + 1}`,
+    accessToken: null,
+    actionsSinceLogin: 0,
+    targetActionsThisSession: randomInt(2, 5),
+  };
+
+  return normalVuState;
 }
 
-function pickLegitUA() {
-  return randomItem(legitAgents);
+function buildLegitHeaders(state) {
+  return {
+    'Content-Type': 'application/json',
+    'x-simulation-label': LABELS.normal,
+    'x-test-client-ip': state.fakeIp,
+    'User-Agent': state.userAgent,
+  };
+}
+
+function buildNormalAuthParams(state) {
+  return {
+    headers: {
+      ...buildLegitHeaders(state),
+      Authorization: `Bearer ${state.accessToken}`,
+    },
+  };
 }
 
 function pickLegitSearchTerm() {
@@ -183,144 +235,261 @@ function pickLegitSearchTerm() {
   return randomItem(longTailTerms);
 }
 
-function buildLegitHeaders() {
-  const fakeIp = `192.168.20.${(exec.vu.idInTest % 253) + 1}`;
-
-  return {
-    'Content-Type': 'application/json',
-    'x-simulation-label': LABELS.normal,
-    'x-test-client-ip': fakeIp,
-    'User-Agent': pickLegitUA(),
-  };
-}
-
 function chooseLegitJourney() {
   const r = Math.random();
-  if (r < 0.45) return 'profile_then_search';
-  if (r < 0.70) return 'search_twice_then_profile';
-  if (r < 0.90) return 'profile_only';
+  if (r < 0.35) return 'profile_then_search';
+  if (r < 0.60) return 'search_twice_then_profile';
+  if (r < 0.80) return 'profile_only';
   return 'search_only';
 }
 
-export function normalUserMixHttpFlow() {
-  const user = pickLegitUser();
-  const headers = buildLegitHeaders();
+function clearNormalSession(state) {
+  state.accessToken = null;
+  state.actionsSinceLogin = 0;
+  state.targetActionsThisSession = randomInt(2, 5);
+}
 
-  group('Normal User Under HTTP Flood', function () {
-    const loginRes = http.post(
-      `${BASE_URL}/auth/login`,
-      JSON.stringify(user),
-      { headers }
-    );
+function ensureNormalAuthenticated(state) {
+  if (state.accessToken) {
+    return true;
+  }
 
-    normalLoginDuration.add(loginRes.timings.duration, {
-      trafficLabel: LABELS.normal,
-    });
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify(state.user),
+    { headers: buildLegitHeaders(state) }
+  );
 
-    const loginOk = check(loginRes, {
-      'normal mix login response known': (r) => [200, 201, 401, 403, 429, 500].includes(r.status),
-    });
+  normalLoginDuration.add(loginRes.timings.duration, {
+    trafficLabel: LABELS.normal,
+  });
 
-    const token = parseToken(loginRes);
+  const loginKnown = check(loginRes, {
+    'normal mix login known': (r) => [200, 201, 401, 403, 429, 500].includes(r.status),
+  });
 
-    if (!loginOk || !token || ![200, 201].includes(loginRes.status)) {
-      normalLogicalFailures.add(1, { trafficLabel: LABELS.normal });
-      think(1.0, 2.0);
-      return;
+  const loginSuccess = [200, 201].includes(loginRes.status);
+
+  if (!loginKnown || !loginSuccess) {
+    normalLogicalFailures.add(1, { trafficLabel: LABELS.normal });
+    clearNormalSession(state);
+    return false;
+  }
+
+  const token = parseToken(loginRes);
+
+  if (!token) {
+    normalLogicalFailures.add(1, { trafficLabel: LABELS.normal });
+    clearNormalSession(state);
+    return false;
+  }
+
+  state.accessToken = token;
+  state.actionsSinceLogin = 0;
+  state.targetActionsThisSession = randomInt(2, 5);
+
+  // login sonrası ilk aksiyona hemen geçmesin
+  think(1.5, 4.0);
+
+  return true;
+}
+
+function doNormalProfileRequest(state) {
+  if (!ensureNormalAuthenticated(state)) {
+    return false;
+  }
+
+  let profileRes = http.get(`${BASE_URL}/user/profile`, buildNormalAuthParams(state));
+  normalProfileDuration.add(profileRes.timings.duration, {
+    trafficLabel: LABELS.normal,
+  });
+
+  if ([401, 403].includes(profileRes.status)) {
+    clearNormalSession(state);
+
+    if (!ensureNormalAuthenticated(state)) {
+      return false;
     }
 
-    const authParams = {
-      headers: {
-        ...headers,
-        Authorization: `Bearer ${token}`,
-      },
-    };
+    profileRes = http.get(`${BASE_URL}/user/profile`, buildNormalAuthParams(state));
+    normalProfileDuration.add(profileRes.timings.duration, {
+      trafficLabel: LABELS.normal,
+    });
+  }
 
+  const known = check(profileRes, {
+    'normal mix profile known': (r) => [200, 401, 403, 429, 500].includes(r.status),
+  });
+
+  const success = profileRes.status === 200;
+
+  if (!known || !success) {
+    normalLogicalFailures.add(1, { trafficLabel: LABELS.normal });
+  }
+
+  return success;
+}
+
+function doNormalSearchRequest(state, maxPage = 5) {
+  if (!ensureNormalAuthenticated(state)) {
+    return false;
+  }
+
+  const term = pickLegitSearchTerm();
+  const page = Math.floor(Math.random() * maxPage) + 1;
+
+  const url = `${BASE_URL}/user/search?q=${encodeURIComponent(term)}&page=${page}&limit=10`;
+
+  let searchRes = http.get(url, buildNormalAuthParams(state));
+  normalSearchDuration.add(searchRes.timings.duration, {
+    trafficLabel: LABELS.normal,
+  });
+
+  if ([401, 403].includes(searchRes.status)) {
+    clearNormalSession(state);
+
+    if (!ensureNormalAuthenticated(state)) {
+      return false;
+    }
+
+    searchRes = http.get(url, buildNormalAuthParams(state));
+    normalSearchDuration.add(searchRes.timings.duration, {
+      trafficLabel: LABELS.normal,
+    });
+  }
+
+  const known = check(searchRes, {
+    'normal mix search known': (r) => [200, 401, 403, 429, 500].includes(r.status),
+  });
+
+  const success = searchRes.status === 200;
+
+  if (!known || !success) {
+    normalLogicalFailures.add(1, { trafficLabel: LABELS.normal });
+  }
+
+  return success;
+}
+
+function doNormalLogoutRequest(state) {
+  if (!state.accessToken) {
+    return true;
+  }
+
+  const logoutRes = http.post(
+    `${BASE_URL}/auth/logout`,
+    null,
+    buildNormalAuthParams(state)
+  );
+
+  normalLogoutDuration.add(logoutRes.timings.duration, {
+    trafficLabel: LABELS.normal,
+  });
+
+  const ok = check(logoutRes, {
+    'normal mix logout known': (r) => [200, 201, 204, 401, 403, 429, 500].includes(r.status),
+  });
+
+  if (!ok) {
+    normalLogicalFailures.add(1, { trafficLabel: LABELS.normal });
+    return false;
+  }
+
+  return true;
+}
+
+export function normalUserMixHttpFlow() {
+  const state = getNormalVuState();
+
+  group('Normal User Under HTTP Flood', function () {
     const journey = chooseLegitJourney();
 
     if (journey === 'profile_then_search') {
       think(1.5, 4.0);
 
-      const profileRes = http.get(`${BASE_URL}/user/profile`, authParams);
-      normalProfileDuration.add(profileRes.timings.duration, {
-        trafficLabel: LABELS.normal,
-      });
-      check(profileRes, {
-        'normal mix profile known': (r) => [200, 401, 403, 429, 500].includes(r.status),
-      });
+      if (!doNormalProfileRequest(state)) {
+        think(1.0, 2.5);
+        return;
+      }
+      state.actionsSinceLogin += 1;
 
       think(1.0, 3.0);
 
-      const term = pickLegitSearchTerm();
-      const page = Math.floor(Math.random() * 5) + 1;
-      const searchRes = http.get(
-        `${BASE_URL}/user/search?q=${encodeURIComponent(term)}&page=${page}&limit=10`,
-        authParams
-      );
-      normalSearchDuration.add(searchRes.timings.duration, {
-        trafficLabel: LABELS.normal,
-      });
-      check(searchRes, {
-        'normal mix search known': (r) => [200, 401, 403, 429, 500].includes(r.status),
-      });
+      if (!doNormalSearchRequest(state, 5)) {
+        think(1.0, 2.5);
+        return;
+      }
+      state.actionsSinceLogin += 1;
     } else if (journey === 'search_twice_then_profile') {
       think(1.5, 3.0);
 
-      for (let i = 0; i < 2; i++) {
-        const term = pickLegitSearchTerm();
-        const page = Math.floor(Math.random() * 3) + 1;
-        const searchRes = http.get(
-          `${BASE_URL}/user/search?q=${encodeURIComponent(term)}&page=${page}&limit=10`,
-          authParams
-        );
-        normalSearchDuration.add(searchRes.timings.duration, {
-          trafficLabel: LABELS.normal,
-        });
-        check(searchRes, {
-          'normal mix search known': (r) => [200, 401, 403, 429, 500].includes(r.status),
-        });
-        think(0.8, 2.0);
+      if (!doNormalSearchRequest(state, 3)) {
+        think(1.0, 2.5);
+        return;
       }
+      state.actionsSinceLogin += 1;
 
-      const profileRes = http.get(`${BASE_URL}/user/profile`, authParams);
-      normalProfileDuration.add(profileRes.timings.duration, {
-        trafficLabel: LABELS.normal,
-      });
-      check(profileRes, {
-        'normal mix profile known': (r) => [200, 401, 403, 429, 500].includes(r.status),
-      });
+      think(0.8, 2.0);
+
+      if (!doNormalSearchRequest(state, 3)) {
+        think(1.0, 2.5);
+        return;
+      }
+      state.actionsSinceLogin += 1;
+
+      think(0.8, 2.0);
+
+      if (!doNormalProfileRequest(state)) {
+        think(1.0, 2.5);
+        return;
+      }
+      state.actionsSinceLogin += 1;
     } else if (journey === 'profile_only') {
       think(1.0, 3.0);
-      const profileRes = http.get(`${BASE_URL}/user/profile`, authParams);
-      normalProfileDuration.add(profileRes.timings.duration, {
-        trafficLabel: LABELS.normal,
-      });
-      check(profileRes, {
-        'normal mix profile known': (r) => [200, 401, 403, 429, 500].includes(r.status),
-      });
+
+      if (!doNormalProfileRequest(state)) {
+        think(1.0, 2.5);
+        return;
+      }
+      state.actionsSinceLogin += 1;
     } else {
       think(1.0, 3.0);
-      const term = pickLegitSearchTerm();
-      const page = Math.floor(Math.random() * 5) + 1;
-      const searchRes = http.get(
-        `${BASE_URL}/user/search?q=${encodeURIComponent(term)}&page=${page}&limit=10`,
-        authParams
-      );
-      normalSearchDuration.add(searchRes.timings.duration, {
-        trafficLabel: LABELS.normal,
-      });
-      check(searchRes, {
-        'normal mix search known': (r) => [200, 401, 403, 429, 500].includes(r.status),
-      });
+
+      if (!doNormalSearchRequest(state, 5)) {
+        think(1.0, 2.5);
+        return;
+      }
+      state.actionsSinceLogin += 1;
     }
 
-    normalCompletedSessions.add(1, {
-      trafficLabel: LABELS.normal,
-    });
+    const shouldEndSession =
+      state.actionsSinceLogin >= state.targetActionsThisSession ||
+      Math.random() < 0.25;
+
+    if (shouldEndSession) {
+      if (Math.random() < 0.55) {
+        think(2.0, 5.0);
+        doNormalLogoutRequest(state);
+      }
+
+      clearNormalSession(state);
+
+      normalCompletedSessions.add(1, {
+        trafficLabel: LABELS.normal,
+      });
+
+      // yeni session'a hemen başlamasın
+      think(15.0, 60.0);
+    } else {
+      // token kalsın, sonraki iteration'da reuse olsun
+      think(5.0, 20.0);
+    }
   });
 }
 
-// ------------------ FLOOD SIDE -----------------------
+// ====================================================
+// FLOOD SIDE (UNCHANGED LOGIC)
+// ====================================================
 function stableFloodProfile() {
   const vuId = exec.vu.idInTest || 1;
 
