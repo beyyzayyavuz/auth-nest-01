@@ -2,23 +2,27 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import helmet from 'helmet';
-console.log('SİSTEM TERMİNALİNDEKİ SECRET:', process.env.JWT_SECRET);
+import { BackendCostInterceptor } from './common/interceptors/backend-cost.interceptor';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
   const logger = new Logger('Bootstrap');
-  logger.log('Application is starting...');
 
-  await app.listen(3000);
-  logger.log('Application is running on: http://localhost:3000');
+  // CORS — listen'dan önce olmalı
   app.enableCors({
-    origin: ['http://localhost:4200'], //only when frontend is the case, or whatever you're planning to implement.
+    origin: ['http://localhost:4200'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
-  console.log(`App is running on: http://localhost:3000`);
+
+  // Global interceptor
+  app.useGlobalInterceptors(new BackendCostInterceptor());
+
+  await app.listen(3000);
+  logger.log('Application is running on: http://localhost:3000');
 }
 bootstrap();
