@@ -61,3 +61,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env
 .env.*
 !.env.example
+# Analysis data and venv
+analysis/data/raw/
+analysis/data/parsed/
+analysis/data/baselines/*.png
+analysis/venv/
