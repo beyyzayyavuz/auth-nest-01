@@ -1,0 +1,8 @@
+{
+  "dataset": "clarknet_sep4",
+  "alpha": 0.9684613455306902,
+  "unique_endpoints": 24257,
+  "top_1_share": 0.012470349262907139,
+  "top_10_share": 0.10617106492963117,
+  "top_100_share": 0.39703070854717293
+}

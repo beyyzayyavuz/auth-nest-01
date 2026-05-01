@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SESSION_DATASETS = ['nasa_jul95', 'nasa_aug95']
+SESSION_DATASETS = ['nasa_jul95', 'nasa_aug95', 'clarknet_aug28', 'clarknet_sep4']
 PARSED = ROOT / 'data/parsed'
 SESSION_GAP_SEC = 1800
 
@@ -53,7 +53,7 @@ for name in SESSION_DATASETS:
         'bounce_rate': bounces / len(session_stats),
     })
 
-print('\n=== Cross-month comparison (Jul95 vs Aug95) ===')
+print('\n=== Cross-trace comparison ===')
 print(pd.DataFrame(summary).to_string(index=False))
 
 print('\nNote: Calgary session segmentation skipped — anonymization '

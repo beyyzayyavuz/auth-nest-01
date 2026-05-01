@@ -1,0 +1,13 @@
+{
+  "dataset": "clarknet_sep4",
+  "distribution": "lognormal",
+  "mu_log": 1.8283452390428825,
+  "sigma_log": 1.6005576116866813,
+  "ks_statistic": 0.12666099985832252,
+  "ks_p_value": 0.0,
+  "sample_count": 1180432,
+  "mean": 35.856628759640536,
+  "median": 5.0,
+  "p95": 121.0,
+  "p99": 780.0
+}

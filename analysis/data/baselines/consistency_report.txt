@@ -1,0 +1,72 @@
+======================================================================
+CROSS-TRACE CONSISTENCY REPORT
+Generated: 2026-05-01T18:27:52.927062+00:00
+======================================================================
+
+--- 1. IAT LOGNORMAL FIT (per-session, requires host info) ---
+   Calgary excluded: anonymized to 2 hosts.
+
+dataset               μ_log    σ_log   mean(s)  median(s)   p95(s)    samples
+---------------------------------------------------------------------------
+nasa_jul95            2.379    1.747     55.52       9.00   243.00  1,492,366
+nasa_aug95            2.159    1.712     46.94       7.00   190.00  1,178,167
+clarknet_aug28        1.820    1.604     35.73       5.00   120.00  1,168,304
+clarknet_sep4         1.828    1.601     35.86       5.00   121.00  1,180,432
+
+   Intra-institutional consistency:
+   NASA Jul vs Aug:      μ_log Δ=9.2%, σ_log Δ=2.0%
+   ClarkNet Aug vs Sep:  μ_log Δ=0.4%, σ_log Δ=0.2%
+
+   Inter-institutional comparison (NASA avg vs ClarkNet avg):
+   μ_log: NASA=2.269, ClarkNet=1.824, Δ=19.6%
+   σ_log: NASA=1.729, ClarkNet=1.602, Δ=7.3%
+
+--- 2. ZIPF ENDPOINT POPULARITY (path-level, all 5 datasets) ---
+
+dataset                 α     unique   top-1%   top-10%   top-100%
+-----------------------------------------------------------------
+nasa_jul95           1.25      7,221    5.30%    30.70%     71.06%
+nasa_aug95           1.25      6,525    5.59%    36.06%     73.16%
+calgary              0.84      8,367   16.21%    29.11%     49.09%
+clarknet_aug28       0.94     25,222    1.23%    10.04%     37.73%
+clarknet_sep4        0.97     24,257    1.25%    10.62%     39.70%
+
+   Intra-institutional consistency:
+   NASA Jul vs Aug:      α Δ=0.6%
+   ClarkNet Aug vs Sep:  α Δ=3.0%
+
+--- 3. MARKOV TRANSITION CROSS-TRACE PAIRWISE |DIFF| ---
+   (Calgary excluded: anonymization precludes session-aware Markov)
+
+pair                                                  max     mean
+----------------------------------------------------------------
+nasa_jul95 vs nasa_aug95                            0.073    0.013
+nasa_jul95 vs clarknet_aug28                        0.293    0.083
+nasa_jul95 vs clarknet_sep4                         0.306    0.081
+nasa_aug95 vs clarknet_aug28                        0.303    0.079
+nasa_aug95 vs clarknet_sep4                         0.305    0.078
+clarknet_aug28 vs clarknet_sep4                     0.100    0.013
+
+--- 4. STRUCTURAL-VS-CONTEXT SEPARATION (thesis findings) ---
+
+   Three independent measurements support the structural-prior framing:
+
+   IAT (lognormal):
+     - σ_log invariant across institutions (~%9 spread, structural)
+     - μ_log context-dependent (~%24 inter-inst, ~%1-10 intra-inst)
+
+   Zipf (endpoint popularity):
+     - Power-law shape universal (5/5 traces fit)
+     - α value context-dependent (NASA 1.25, ClarkNet 0.95, Calgary 0.84)
+
+   Markov (navigation transitions):
+     - Intra-institutional mean |diff|: ~0.013
+     - Inter-institutional mean |diff|: ~0.080 (6x higher)
+     - Same categorical structure (html/image/cgi/etc.) applies universally
+
+   Conclusion: distribution shapes (lognormal, power-law, transition
+   structure) transfer as structural priors. Numerical parameters
+   (μ_log, α, transition probabilities) require deployment-context
+   re-parameterization.
+
+======================================================================

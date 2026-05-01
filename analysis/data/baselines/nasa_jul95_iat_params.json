@@ -1,0 +1,13 @@
+{
+  "dataset": "nasa_jul95",
+  "distribution": "lognormal",
+  "mu_log": 2.378817618624503,
+  "sigma_log": 1.7465066634236524,
+  "ks_statistic": 0.08659211754029333,
+  "ks_p_value": 0.0,
+  "sample_count": 1492366,
+  "mean": 55.52106386771074,
+  "median": 9.0,
+  "p95": 243.0,
+  "p99": 913.0
+}

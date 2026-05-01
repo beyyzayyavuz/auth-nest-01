@@ -9,9 +9,11 @@ ROOT = Path(__file__).resolve().parents[1]
 # Dataset registry — Calgary path-level cross-trace için, NASA Aug95
 # session-level cross-validation için kullanılacak
 DATASETS = {
-    'nasa_jul95': ROOT / 'data/raw/NASA_access_log_Jul95',
-    'nasa_aug95': ROOT / 'data/raw/NASA_access_log_Aug95',
-    'calgary':    ROOT / 'data/raw/calgary_access_log',
+    'nasa_jul95':     ROOT / 'data/raw/NASA_access_log_Jul95',
+    'nasa_aug95':     ROOT / 'data/raw/NASA_access_log_Aug95',
+    'calgary':        ROOT / 'data/raw/calgary_access_log',
+    'clarknet_aug28': ROOT / 'data/raw/clarknet_access_log_Aug28',
+    'clarknet_sep4':  ROOT / 'data/raw/clarknet_access_log_Sep4',
 }
 
 OUT = ROOT / 'data/parsed'
