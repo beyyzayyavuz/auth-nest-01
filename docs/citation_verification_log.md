@@ -1431,253 +1431,280 @@ Status: ✓ Verified as optional bot mimicry / evasion evidence
 
 # KATEGORİ D — ACADEMIC PAPERS
 
-> **En riskli kategori.** Hallucination geçmişi var (Mirai). Her birini
-> dikkatli verify et veya **çıkar**.
+## D.1 — Antonakakis et al. 2017 Mirai (VERIFIED)
 
-## D.1 — Antonakakis et al. 2017 Mirai (PARTIALLY VERIFIED)
-## Mirai Botnet — Antonakakis et al. 2017 (USENIX Security)
+**Citation:**
+Antonakakis, M., et al. (2017). "Understanding the Mirai Botnet."
+USENIX Security Symposium.
 
-- URL: https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/antonakakis
-- Year: 2017
-- Page reference: p.2 (Abstract)
-- Verified: 2026-05-04
+**URL:** https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/antonakakis
 
-- Findings:
-  - Mirai botnet reached a peak size of approximately 600,000 infected devices
-  - Analysis covers a 7-month observation period (Aug 2016 – Feb 2017)
-  - Botnet composed primarily of IoT and embedded devices
+**Verified:** 2026-05-04
 
-- Use case:
-  - Used as an anchor reference for the existence and large-scale nature of IoT-based botnets
-  - DOES NOT provide per-bot HTTP request rate or throughput metrics
+**Page reference:** PDF p.2 / USENIX paper p.1093, Abstract
 
-- Status: ✓ Verified
+**Verified findings:**
+- Mirai botnet was composed primarily of embedded and IoT devices.
+- The paper provides a seven-month retrospective analysis of Mirai.
+- Mirai grew to a peak of approximately 600,000 infections.
+- The paper discusses Mirai’s DDoS victims and large-scale impact.
 
-## D.2 — Wagner & Soto 2002 (VERIFIED)
-## Mimicry Attacks — Wagner & Soto 2002 (CCS)
-
-- URL: https://dl.acm.org/doi/10.1145/586110.586145
-- Year: 2002
-- Page reference: p.1 (Abstract), p.4 (Mimicry concept)
-- Verified: 2026-05-04
-
-- Key findings:
-  - Mimicry attacks allow attackers to cloak malicious activity by imitating normal behavior
-  - IDS systems can be evaded if attackers adapt their behavior to match expected patterns
-  - Sophisticated attackers can exploit knowledge of IDS mechanisms to avoid detection
-
-- Use case:
-  - Provides the foundational definition of "mimicry attack"
-  - Conceptually supports low-and-slow and stealth attack modeling in higher-layer protocols (e.g., HTTP)
-
-- Status: ✓ Verified
-
-
-## D.5 — Thomas et al. 2017 CCS (UNVERIFIED — verify et)
-- **Title:** Data Breaches, Phishing, or Malware? Understanding the Risks of Stolen Credentials  
-- **Authors:** Thomas et al.  
-- **Year:** 2017  
-- **Source:** ACM CCS  
-- **URL:** https://dl.acm.org/doi/10.1145/3133956.3134067  
-- **Status:** ✓ Verified  2026-05-04
-
-### Keyword Search (PDF)
-- `success rate` → password validity and hijacking likelihood analyzed  
-- `valid credentials` → match rate between stolen and real accounts identified  
-- `account takeover` → hijacking risk quantified  
-
-### Extracted Statistics
-
-- **Valid credential (match) rate:**
-  - Data breaches: ~6.9%  
-  - Phishing: ~24.8%  
-  - Keyloggers: ~11.9%  
-
-- **Abstract summary:**
-  - *7%–25% of exposed passwords match a victim’s account*
-
-- **Password reuse rate:**
-  - ~17% average reuse across datasets  
-  - Range: ~12% – 38% depending on source  
-
-- **Account takeover risk (odds ratio):**
-  - Phishing: ~463× more likely than baseline  
-  - Keylogger: ~38×  
-  - Data breach: ~11×  
+**Use case:**
+- This source is used only as an anchor reference for the existence, scale, and IoT-based nature of the Mirai botnet.
+- It supports the claim that IoT botnets can reach hundreds of thousands of infected devices and be used in large-scale DDoS attacks.
+- It does NOT provide per-bot HTTP request rate, per-device throughput, or low-and-slow HTTP behavior metrics.
 
 **Status:** ✓ Verified
 
-## D.3 — Fogla et al. 2006 (VERIFIED)
-## Polymorphic Blending Attacks — Fogla et al. 2006 (USENIX)
+## D.2 — Mimicry Attacks — Wagner & Soto 2002 (CCS) Wagner & Soto 2002 (VERIFIED)
 
-- URL: https://www.usenix.org/legacy/event/sec06/tech/full_papers/fogla/fogla.pdf
-- Year: 2006
-- Page reference: p.1 (Abstract), p.3 (Blending concept)
+- URL: https://dl.acm.org/doi/10.1145/586110.586145
+- Year: 2002
+- Page reference:
+  - PDF p.1 / ACM p.255: Abstract, paper metadata, mimicry attack introduction
+  - PDF p.4 / ACM p.258: mimicry concept explanation
+  - PDF p.8 / ACM p.262: experimental confirmation against pH IDS
 - Verified: 2026-05-04
 
 - Key findings:
-  - Attacks can evade anomaly-based IDS by matching statistical properties of normal traffic
-  - Payload byte frequency distribution is a key feature used by IDS (e.g., PAYL)
-  - Blending attacks transform malicious payloads to fit normal statistical profiles
-  - These attacks are a subclass of mimicry attacks
+  - The paper introduces the notion of a mimicry attack.
+  - A mimicry attack allows a sophisticated attacker to cloak an intrusion and avoid IDS detection.
+  - The attack works by making malicious behavior appear acceptable or normal to a host-based anomaly IDS.
+  - The paper formalizes mimicry attacks using system-call traces and IDS-accepted behavior.
+  - The authors experimentally show that a modified exploit sequence can evade the pH host-based IDS.
 
 - Use case:
-  - Provides statistical foundation for “traffic blending”
-  - Supports behavioral evasion modeling beyond simple polymorphism
+  - Provides the foundational academic concept of "mimicry attack."
+  - Used only as a conceptual basis for stealth/evasion behavior.
+  - In this project, it can support the idea that attackers may adapt behavior to avoid anomaly detection.
+  - HTTP-layer use is a conceptual transfer, not a direct empirical result from this paper.
+
+- Not used for:
+  - HTTP traffic statistics
+  - bot request rates
+  - low-and-slow DDoS measurements
+  - user-agent rotation or web bot behavior
 
 - Status: ✓ Verified
 
-## D.4 — Doran & Gokhale 2011 (VERIFIED — LIMITED USE)
+## D.3 — Polymorphic Blending Attacks — Fogla et al. 2006 (USENIX Security) Fogla et al. 2006 (VERIFIED)
+
+- URL: https://www.usenix.org/legacy/event/sec06/tech/full_papers/fogla/fogla.pdf
+- Year: 2006
+- Page reference:
+  - PDF p.1 / USENIX p.241: Abstract, polymorphic blending definition, PAYL context, mimicry subclass claim
+  - PDF p.3 / USENIX p.243: Blending attack concept
+  - PDF p.4 / USENIX p.244: realistic attack scenario and normal-profile learning
+  - PDF p.6 / USENIX p.246: PAYL case study and n-gram payload model
+  - PDF p.10–13 / USENIX p.250–253: HTTP traffic dataset and experimental evaluation
+- Verified: 2026-05-04
+
+- Key findings:
+  - Polymorphic blending attacks can evade byte frequency-based network anomaly IDS.
+  - The attack works by making malicious payload instances statistically resemble normal traffic.
+  - PAYL uses payload byte-frequency / n-gram distributions as anomaly-detection features.
+  - Blending attacks transform and pad malicious payloads so their statistical profile fits the normal profile used by the IDS.
+  - The authors describe these attacks as a subclass of mimicry attacks.
+  - The paper experimentally demonstrates evasion against PAYL using HTTP traffic data.
+
+- Use case:
+  - Provides the statistical foundation for “traffic blending.”
+  - Supports the idea that attackers can adapt malicious traffic to match normal statistical profiles.
+  - Useful as conceptual support for anomaly-evasion modeling in network/API traffic.
+
+- Not used for:
+  - HTTP request timing
+  - endpoint transition probabilities
+  - user behavior modeling
+  - per-bot request rates
+  - low-and-slow DDoS traffic volume
+
+- Important limitation:
+  - The paper focuses on payload byte/n-gram statistics, not HTTP metadata such as headers, endpoint paths, request intervals, or user session behavior.
+  - Any use for HTTP metadata or API behavior should be framed as conceptual transfer, not direct empirical evidence.
+
+- Status: ✓ Verified
+
+## D.4 — Web Robot Detection Techniques — Doran & Gokhale 2011 Doran & Gokhale 2011 (VERIFIED — LIMITED USE)
 
 **Citation:**
-> Doran, D., & Gokhale, S. S. (2011). "Web Robot Detection Techniques: Overview and Limitations." Data Mining and Knowledge Discovery, 22(1-2), 183–210.
+Doran, D., & Gokhale, S. S. (2011). "Web Robot Detection Techniques: Overview and Limitations."
+Data Mining and Knowledge Discovery, 22(1–2), 183–210.
 
 **URL:** https://link.springer.com/article/10.1007/s10618-010-0180-z
 
-**Verification Status:** ✓ Verified (Full-text reviewed)
+**Verification Status:** ✓ Verified — full text available and relevant claims checked
 
-**Key Findings (Verified):**
-- Web robot detection relies on behavioral features such as:
+**Page reference:**
+- PDF p.1: Abstract, survey scope
+- PDF p.5–8: detection technique categories and overview table
+- PDF p.10–13: traffic/resource/request-rate pattern analysis
+- PDF p.15–18: analytical learning features including session duration, time between requests, request arrival patterns
+- PDF p.21–24: limitations and evasive/hidden robot discussion
+
+**Key Findings Verified:**
+- Web robot detection techniques are classified into syntactical log analysis, traffic pattern analysis, analytical learning techniques, and Turing test systems.
+- Traffic pattern analysis uses behavioral differences between robots and humans, including resource request patterns, request/query rates, and time intervals between requests.
+- Analytical learning techniques use session-level features such as session duration, total requests, average time between requests, image/html request ratios, error response percentages, and request arrival patterns.
+- The paper discusses hidden/evasive robots and notes that robots may fake user-agent fields, use proxies, or ignore robots.txt.
+- The paper does not provide a general numerical bot rate range such as 0.5–5 requests/second.
+
+**Use case in this project:**
+- Used to justify feature selection for web/API bot detection:
   - request rate
-  - inter-arrival time
-  - session length
-  - resource access patterns :contentReference[oaicite:0]{index=0}
-- Traffic pattern analysis and statistical modeling are widely used to distinguish bots from human users :contentReference[oaicite:1]{index=1}
-- Machine learning approaches leverage these features to improve detection accuracy :contentReference[oaicite:2]{index=2}
+  - inter-arrival time / time between requests
+  - session duration
+  - resource access patterns
+  - request method and response-code based features
+- Not used for numerical parameter calibration.
 
-**Important Limitation:**
-- The paper **does NOT provide explicit numerical thresholds** (e.g., requests per second ranges such as 0.5–5 req/s)
-- It is a **survey paper**, focusing on methodologies rather than concrete parameter values
+**Important limitation:**
+- This is a survey paper.
+- It summarizes detection methodologies and features, but does not provide a universal request-per-second threshold.
+- Any 0.5–5 req/s or similar rate range must be justified using another verifiable source.
 
-**Use in This Project:**
-- Used to justify **feature selection** (request rate, inter-arrival time, session behavior)
-- NOT used for **numerical parameter calibration**
+**Tez cümlesi:**
+Behavioral features such as request/query rate, time between requests, session duration, and resource access patterns have been identified in prior Web robot detection literature as useful indicators for distinguishing automated sessions from human users. However, Doran and Gokhale do not define universal request-per-second thresholds, so numerical calibration in this work is based on separate empirical or industry sources.
 
-**Tez Cümlesi:**
-> "Behavioral features such as request rate, inter-arrival time, and session-level patterns are established indicators for distinguishing automated traffic from human users, as identified in prior work [Doran & Gokhale, 2011]. However, numerical rate thresholds are not defined in the study, and thus parameter calibration in this work relies on industry reports."
+**Status:** ✓ Included — feature justification only
 
-**Status:** ✓ Included (feature justification only)
+## D.5 — Data Breaches, Phishing, or Malware: Understanding the Risks of Stolen Credentials — Thomas et al. 2017 Thomas et al. 2017 CCS (VERIFIED)
 
-## D.6 — Onaolapo et al. 2016 (IMC) — Leaked Credential Usage in the Wild
+- Title: Data Breaches, Phishing, or Malware? Understanding the Risks of Stolen Credentials
+- Authors: Thomas et al.
+- Year: 2017
+- Source: ACM CCS 2017, pp. 1421–1434
+- URL: https://dl.acm.org/doi/10.1145/3133956.3134067
+- Verified: 2026-05-04
 
-- **Title:** What Happens After You Are Pwnd: Understanding the Use of Leaked Webmail Credentials in the Wild  
-- **Authors:** Onaolapo, Mariconti, Stringhini  
-- **Year:** 2016  
-- **Source:** IMC (Internet Measurement Conference)  
-- **URL:** https://dl.acm.org/doi/10.1145/2987443.2987475  
-- **Status:** ✓ Verified  2026-05-04
+Page reference:
+- PDF p.1 / ACM p.1421: Abstract, dataset scale, 7–25% password match claim
+- PDF p.3 / ACM p.1423: Table 1, dataset summary
+- PDF p.9 / ACM p.1429: Section 5.1, current password match rate
+- PDF p.9 / ACM p.1429: Table 9, match rates and hijacking odds ratios
+- PDF p.9–10 / ACM p.1429–1430: Section 5.2 and Figure 5, historical password reuse
 
-### Keyword Search (PDF)
+Keyword Search:
+- `success rate` → phishing kit success discussed in related work, but not the main credential-validity metric
+- `valid credentials` → password match rates analyzed
+- `account takeover` / `hijacking` → hijacking risk quantified through odds ratios
 
-- `account access` → attacker behavior after login analyzed  
-- `compromise` → account takeover and misuse observed  
-- `credentials` → credential leakage and usage methodology described  
+Extracted Statistics:
 
-⚠️ **Important:**  
-- `success rate` → ❌ NOT explicitly provided  
-- `reuse rate <5%` → ❌ NOT found in paper  
+- Dataset scale:
+  - 788,000 potential keylogger victims
+  - 12.4 million potential phishing victims
+  - 1.9 billion usernames/passwords from data breaches
 
----
+- Valid credential / password match rate:
+  - Credential leaks: 6.9%
+  - Phishing kits: 24.8%
+  - Keyloggers: 11.9%
 
-### Experimental Setup (Core Insight)
+- Abstract summary:
+  - 7%–25% of exposed passwords match a victim’s Google account.
 
-- 100 Gmail **honeypot accounts** created  
-- Credentials deliberately leaked via:
-  - Paste sites  
-  - Underground forums  
-  - Malware  
+- Password reuse:
+  - Among the 7 largest fully inverted credential leaks of known distinct origins, the authors observed 17.0% password reuse across 22 million email addresses.
+  - Figure 5 reports pairwise reuse between leak pairs; most pairwise rates are 12%–19%, while one pair reaches 38%.
 
-- Observation period: **7 months**
+- Account takeover / hijacking risk:
+  - Phishing kit victims with valid credentials: 463.4× more likely to be hijacked than a random Google user
+  - Keylogger victims with valid credentials: 38.5×
+  - Credential leak victims with valid credentials: 11.6×
 
----
+Use case:
+- Supports credential-stuffing and account-takeover risk justification.
+- Supports the claim that stolen credentials can remain valid for real accounts.
+- Useful for motivating login abuse, credential reuse risk, and authentication-hardening scenarios.
 
-### Key Measured Results
+Not used for:
+- HTTP flood rate
+- low-and-slow DDoS rate
+- bot request timing
+- normal user traffic calibration
 
-- **326 unique attacker accesses recorded** :contentReference[oaicite:0]{index=0}  
-- **90/100 accounts accessed** :contentReference[oaicite:1]{index=1}  
-- **36 accounts fully hijacked (password changed)** :contentReference[oaicite:2]{index=2}  
+Status: ✓ Verified
 
-- **Activity breakdown:**
-  - 147 emails opened  
-  - 845 emails sent  
-  - 12 draft emails created :contentReference[oaicite:3]{index=3}  
+## D.6 — Leaked Webmail Credentials in the Wild — Onaolapo et al. 2016 Onaolapo et al. 2016 IMC (VERIFIED)
 
----
+- Title: What Happens After You Are Pwnd: Understanding the Use of Leaked Webmail Credentials in the Wild
+- Authors: Jeremiah Onaolapo, Enrico Mariconti, Gianluca Stringhini
+- Year: 2016
+- Source: IMC 2016, pp. 65–79
+- URL: https://dl.acm.org/doi/10.1145/2987443.2987475
+- Verified: 2026-05-04
 
-### Attacker Behavior Taxonomy
+Page reference
+- PDF p.1 / ACM p.65: Abstract, study goal, 100 honey accounts, 7-month monitoring, evasion/blending claim
+- PDF p.4 / ACM p.68: Table 1, account groups and leak outlets
+- PDF p.6 / ACM p.70: Section 4.1, overview statistics
+- PDF p.6–7 / ACM p.70–71: attacker taxonomy
+- PDF p.8–10 / ACM p.72–74: stealth, Tor usage, system configuration hiding, location-based evasion
+- PDF p.12 / ACM p.76: attacker sophistication discussion
 
-Paper çok önemli bir şey yapıyor:
+Keyword Search
+- `account access` → attacker access behavior after leaked credentials analyzed
+- `compromise` → compromised webmail account misuse discussed
+- `credentials` → credential leakage and usage methodology described
+- `success rate` → no explicit credential stuffing success-rate metric found
+- `reuse rate <5%` → not found
 
-#### 1. Curious (en büyük grup)
-- Sadece login olup kontrol ediyor
-- Çoğu saldırgan bu kategoride
+Experimental Setup
+- 100 Gmail honey accounts were created.
+- Credentials were deliberately leaked through:
+  - paste sites
+  - underground forums
+  - malware-infected virtual machines
+- Accounts were monitored for 7 months.
 
-#### 2. Gold Digger
-- Finansal veri arıyor (payment, bitcoin vs.)
-- Hesabın “değerini” ölçüyor
+### Key measured results
+- 326 unique attacker accesses were recorded.
+- 90/100 accounts received accesses.
+- 36/100 accounts were hijacked, meaning attackers changed the passwords and the researchers lost control of those accounts.
+- Recorded activity included:
+  - 147 emails opened
+  - 845 emails sent
+  - 12 draft emails created
 
-#### 3. Spammer
-- Hesabı spam için kullanıyor
+Attacker behavior taxonomy
+- Curious:
+  - Login to check whether credentials work.
+  - Largest observed category.
+- Gold Digger:
+  - Searches for sensitive or financial information.
+- Spammer:
+  - Uses the account to send spam or malicious emails.
+- Hijacker:
+  - Changes the account password and locks out the original owner.
 
-#### 4. Hijacker
-- Şifreyi değiştirip hesabı ele geçiriyor
+Stealth and evasion insights
+- Attackers who obtained credentials through malware appeared more stealthy.
+- Malware-related accesses frequently used Tor and hid system/browser configuration.
+- Some attackers attempted to evade location-based login risk systems by connecting from locations closer to the advertised account location.
+- The paper explicitly notes attempts to evade Gmail protection systems and blend in with legitimate user activity.
 
----
+### Important limitations
+- The paper does not provide a general credential-stuffing success rate.
+- The paper does not provide a <5% password reuse rate.
+- The 36/100 hijacking result comes from the controlled honey-account experiment, not from a global stolen-credential population.
+- It should not be used for HTTP request-rate calibration.
 
-### Critical Insight (Tez için ALTIN değerinde)
+Use case in this project
+- Supports the claim that leaked credentials are actively exploited in the wild.
+- Supports account takeover / credential misuse as a realistic attack outcome.
+- Supports the idea that attackers may act stealthily and attempt to evade account-protection systems.
+- Useful for motivating login abuse and compromised-account scenarios.
 
-👉 **36% account takeover (36/100)**
+Not used for
+- HTTP flood rate
+- low-and-slow DDoS rate
+- request-per-second calibration
+- normal user timing calibration
+- password reuse percentage
 
-Bu şu demek:
-> Leaked credentials → real-world’de ciddi oranda başarılı oluyor
+Status: ✓ Verified
 
-Ama dikkat:
-- Bu **login success rate değil**
-- Bu **post-access impact (ne kadar zarar veriliyor)**
+## D.7 — Cambiaso et al. 2013 
 
----
-
-### Stealth & Behavior Insights
-
-- Malware üzerinden gelen saldırganlar:
-  - Daha stealth (gizli)
-  - Tor kullanıyor
-  - User-Agent gizliyor  
-
-- Paste/forum saldırganları:
-  - Daha az sofistike  
-  - Daha agresif (hijack yapıyor)
-
----
-
-### Interpretation
-
-This paper does **NOT provide explicit credential stuffing success rates**, but demonstrates that:
-
-- Leaked credentials are actively used in the wild  
-- A significant portion of accessed accounts are:
-  - Exploited
-  - Hijacked
-  - Used for financial gain  
-
-- Attackers operate in different sophistication levels and often attempt to:
-  - Evade detection  
-  - Blend with legitimate users  
-
----
-
-### Usage in This Project
-
-Bu paper şu şeyleri justify eder:
-
-- ✔ Credential leakage → real exploitation exists  
-- ✔ Attackers behave stealthily (low-rate possible)  
-- ✔ Account takeover is realistic outcome  
-- ✔ Bot mimicry + human-like behavior  
-
----
-
-### Thesis Citation
-
-> Onaolapo et al. (2016) demonstrate that leaked credentials are actively exploited in the wild, with 90% of honey accounts receiving unauthorized access and 36% being fully hijacked. The study highlights that attackers not only access compromised accounts but also perform targeted actions such as financial data extraction, spam distribution, and account takeover.
-
+**Status:** full text request was sent to the authors. date: may 5?
