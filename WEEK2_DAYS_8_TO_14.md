@@ -243,16 +243,16 @@ const searchTerms = [
 
 // Test users — register edilmiş hesaplar
 export const TEST_USERS = [
-  { email: 'levintolstoy@gmail.com',  password: '123456' },
-  { email: 'annakarenina@gmail.com',  password: '1111'   },
-  { email: 'adrien@gmail.com',        password: '2222'   },
-  { email: 'maya@gmail.com',          password: '3333'   },
-  { email: 'beyza@gmail.com',         password: '4444'   },
-  { email: 'user6@gmail.com',         password: '5555'   },
-  { email: 'user7@gmail.com',         password: '6666'   },
-  { email: 'user8@gmail.com',         password: '7777'   },
-  { email: 'user9@gmail.com',         password: '8888'   },
-  { email: 'user10@gmail.com',        password: '9999'   },
+  { email: 'user01@example.com', password: 'TestUser@2026!' },
+  { email: 'user02@example.com', password: 'SecurePass@101' },
+  { email: 'user03@example.com', password: 'DemoLogin@2026' },
+  { email: 'user04@example.com', password: 'UserAccess@404' },
+  { email: 'user05@example.com', password: 'ProfileTest@55' },
+  { email: 'user06@example.com', password: 'SearchUser@77' },
+  { email: 'user07@example.com', password: 'NormalFlow@88' },
+  { email: 'user08@example.com', password: 'SessionTest@99' },
+  { email: 'user09@example.com', password: 'ApiClient@123' },
+  { email: 'user10@example.com', password: 'TrafficUser@10' },
 ];
 
 export function getVuState(role = 'legit', label = 'normal_user') {
@@ -451,7 +451,7 @@ k6 version
 
 # Quick smoke (10 saniye)
 k6 run --duration 10s --vus 2 --env BASE_URL=http://localhost:8080 \
-  k6/scenarios/01-legitimate-only.js
+  k6/scenarios/01_legitimate_only.js
 ```
 
 Beklenen: 10 saniyede 2 VU birkaç request atar, çoğu `/auth/login` +
