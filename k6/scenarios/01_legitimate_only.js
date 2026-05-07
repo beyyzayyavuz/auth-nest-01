@@ -23,3 +23,5 @@ export const options = {
 export function flow() {
   runLegitSession(BASE_URL, 'legit', 'normal_user');
 }
+
+export default flow;

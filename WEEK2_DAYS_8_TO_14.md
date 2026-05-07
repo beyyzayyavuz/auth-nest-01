@@ -18,6 +18,35 @@ P0 madde 5 (mix script'lerde simplified normal user bias) düzeltmesi.
 
 **Toplam süre:** 4-5 saat
 
+> **Day 8 başlamadan önce zorunlu hazırlık (15 dk):** k6 scenario'larındaki
+> `TEST_USERS` (10 hesap, `user01@example.com`...`user10@example.com`)
+> NestJS DB'sinde **register edilmiş olmalı**. Aksi halde tüm legitimate
+> login attempts 401 dönecek ve hiçbir scenario meaningful trafik üretmeyecek.
+>
+> Hesapları seed et:
+>
+> ```bash
+> for i in $(seq -w 1 10); do
+>   PASSWORDS=("TestUser@2026!" "SecurePass@101" "DemoLogin@2026" \
+>              "UserAccess@404" "ProfileTest@55" "SearchUser@77" \
+>              "NormalFlow@88" "SessionTest@99" "ApiClient@123" \
+>              "TrafficUser@10")
+>   IDX=$((10#$i - 1))
+>   curl -s -X POST http://localhost:8080/auth/register \
+>     -H "Content-Type: application/json" \
+>     -d "{\"email\":\"user${i}@example.com\",\"password\":\"${PASSWORDS[$IDX]}\"}"
+>   echo
+> done
+> ```
+>
+> Sanity:
+> ```bash
+> docker compose exec postgres psql -U research -d ddos_research \
+>   -c "SELECT id, email FROM \"User\" WHERE email LIKE 'user%@example.com';"
+> ```
+>
+> 10 satır görmelisin.
+
 ### 8.1 Klasör yapısı
 
 ```bash
@@ -33,14 +62,14 @@ k6/
 │   ├── ua-pool.js                   # 3-tier UA havuzu
 │   └── cadence.js                   # log-normal think helpers
 ├── scenarios/
-│   ├── 01-legitimate-only.js        # mevcut k6-traffics.js refactored
-│   ├── 02-http-flood.js             # k6-http-flood refactored
-│   ├── 03-low-rate-bot.js           # k6-low-slow → renamed
-│   ├── 04-credential-stuffing.js    # YENİ
-│   ├── 05-mimicry-flood.js          # YENİ (mimicry holdout)
-│   ├── 06-mix-flood.js              # k6-mix-flood refactored
-│   ├── 07-mix-slow.js               # k6-mix-slow refactored
-│   └── 08-mix-all.js                # k6-mix-all refactored
+│   ├── 01_legitimate_only.js        # mevcut k6-traffics.js refactored
+│   ├── 02_http_flood.js             # k6-http-flood refactored
+│   ├── 03_low_rate_bot.js           # k6-low-slow → renamed
+│   ├── 04_credential_stuffing.js    # YENİ
+│   ├── 05_mimicry_flood.js          # YENİ (mimicry holdout)
+│   ├── 06_mix_flood.js              # k6-mix-flood refactored
+│   ├── 07_mix_slow.js               # k6-mix-slow refactored
+│   └── 08_mix_all.js                # k6-mix-all refactored
 ```
 
 Eski script'leri henüz silme — önce yeniler çalışsın.
@@ -408,7 +437,7 @@ export function runLegitSession(baseUrl, role = 'legit', label = 'normal_user') 
 
 ### 8.6 Refactored: legitimate-only scenario
 
-`k6/scenarios/01-legitimate-only.js`:
+`k6/scenarios/01_legitimate_only.js`:
 
 ```javascript
 import { runLegitSession } from '../common/legitimate-user-flow.js';
@@ -465,7 +494,7 @@ compose up halinde olmalı.
 
 - [ ] `k6/common/cadence.js`, `ip-pool.js`, `ua-pool.js`,
       `legitimate-user-flow.js` oluştu
-- [ ] `k6/scenarios/01-legitimate-only.js` çalışıyor
+- [ ] `k6/scenarios/01_legitimate_only.js` çalışıyor
 - [ ] Smoke test 200 OK döndürdü, RequestLog'a satır geldi
 - [ ] Mevcut eski script'ler (k6-traffics.js vs.) henüz silinmedi (Day 9'da
       hepsi refactor edilince silinir)
@@ -483,76 +512,52 @@ literatür-grounded şekilde gerekçelendir** (calibration asymmetry düzeltmesi
 
 **Toplam süre:** 7-8 saat (literatür çalışması + scripting)
 
-### 9.0 Literatür-grounded parameter calibration (~2 saat)
+### 9.0 Literatür-grounded parameter calibration — TAMAMLANDI (Day 8 öncesi)
 
-Bu adım `docs/attack_calibration_sources.md` dosyasıyla bağlantılı. Her
-scenario'nun rate, burst, connection vs. parametrelerini akademik kaynaklara
-veya endüstri raporlarına dayandır.
+> **Status:** Bu adım Day 8 başlamadan önce **tamamen yapıldı**. Verification
+> roadmap takip edildi (Kategori A/B/C/D), 4 ciddi LLM hallucination
+> yakalandı ve düzeltildi (OWASP OAT mapping, Cloudflare default rate limit,
+> Doran 0.5-5 req/s claim, Onaolapo <5% reuse rate).
+>
+> Mevcut çıktılar:
+> - `docs/citation_verification_log.md` — full verification log (17 source)
+> - `docs/attack_calibration_sources.md` — verified parameter justification
+> - `docs/verification_roadmap.md` — verification protocol dokümantasyonu
+>
+> Day 9'da bu dosyalardan inline citation yorumlarını k6 script'lerine
+> ekleyeceğiz, ek literatür araştırmasına gerek yok.
 
-**Yapılacaklar:**
+**Day 9'da kullanılacak verified anchors (`attack_calibration_sources.md`'den):**
 
-1. `docs/attack_calibration_sources.md`'i aç, **her scenario için** (S2-S6)
-   parametre değerlerinin literatür gerekçelerini gözden geçir.
+| Scenario | Primary anchor | İkincil anchor |
+|---|---|---|
+| S2 http_flood | Cloudflare 2025 Q1 (94% ≤1 Mrps) | Antonakakis 2017 (Mirai existence) |
+| S3 low_rate_bot | Akamai blog 0.5-1.3 req/s | OWASP OAT-011 Scraping |
+| S4 credential_stuffing | OWASP OAT-008, Thomas 2017 7-25% match | Akamai SOTI 2024 18.56% broken auth |
+| S5 mimicry_flood | Imperva 2025 (21% RP, 46% Chrome) | Wagner-Soto 2002, Fogla 2006 conceptual |
+| S6 real_slowloris | slowhttptest tool docs | nginx defaults (60s timeouts) |
 
-2. Bu dosyada cite edilen referansları **kişisel olarak doğrula**:
-   - Google Scholar'da başlığı ara
-   - DOI varsa tıkla, paper'ı bul
-   - Citation count'a bak (50+ güvenli, <10 şüpheli)
-   - Yazarların diğer çalışmaları varsa kontrol et
-
-3. **Şüpheli citation varsa alternatif bul.** Örnek alternatif kaynaklar:
-   - **HTTP flood / DDoS measurement:** Jonker et al. 2017 IMC, Czyz et al.
-     2014 IMC NTP DDoS, Cloudflare quarterly reports
-   - **Credential stuffing:** Akamai SOTI 2023/2024, Thomas et al. 2017 CCS
-   - **Slow-DoS:** Cambiaso et al. 2013 (genel taxonomy), Park et al. 2014
-     (slow-read), Damon et al. 2012 (slow-read)
-   - **Mimicry attack:** Wagner & Soto 2002 CCS (IDS evasion klasik), Fogla
-     et al. 2006 USENIX (polymorphic blending)
-   - **Web bot detection:** Doran & Gokhale 2011 DMKD, Tan & Kumar 2002
-     (early bot detection), Stassopoulou & Dikaiakos 2009
-
-4. k6 scenario script parametrelerinin yorum satırlarına **inline citation**
-   ekle. Örnek:
+K6 script yorum satırlarına bu anchor'ları inline cite et. Örnek:
 
 ```javascript
-// Per-VU rate ~1 req/s; total peak 200 req/s.
-// Refleksiyon: Mirai botnet per-bot 5-50 req/s [Antonakakis et al., 2017].
-// Lab-scale alt sınırı seçildi (200 distinct sources × 1 req/s).
+// Per-VU ~1 req/s aggregate 200 req/s peak.
+// Anchor: scaled-down lab analog of Cloudflare 2025 Q1 measured
+// L7 attacks where 94% remained ≤1 Mrps and 75% < 10 min duration.
+// Mirai existence: Antonakakis et al. 2017 (600K device botnet).
 maxVUs: 200,
-stages: [
-  { target: 50,  duration: '2m'  },
-  { target: 150, duration: '15m' },
-  { target: 200, duration: '10m' },  // peak
-  { target: 0,   duration: '3m'  },
-],
 ```
 
-5. `docs/attack_calibration_sources.md`'in son bölümünde **bibtex collection**
-   hazırla. Tezde direkt copy-paste için. Örnek format:
+**Day 9 başlamadan ön-kontrol:**
 
-```bibtex
-@inproceedings{antonakakis2017mirai,
-  title     = {Understanding the {Mirai} Botnet},
-  author    = {Antonakakis, Manos and April, Tim and Bailey, Michael and others},
-  booktitle = {26th USENIX Security Symposium},
-  pages     = {1093--1110},
-  year      = {2017}
-}
-```
-
-6. **Sanity:** Her scenario için "tezde gerekçelendirme cümlesi" blok'unu
-   gözden geçir. Cümle akademik standartlarda mı? Spesifik sayı veya iddia
-   eden cümleler doğru kaynağa atfediliyor mu?
-
-**Çıktı:** `docs/attack_calibration_sources.md` doğrulanmış + bibtex'li hali.
-
-> **Önemli:** Bu doküman tezdeki "Methodology > Attack Scenario Calibration"
-> bölümünün ham versiyonu. Tez yazarken (Day 26-28) bu dosyayı paragrafa
-> dönüştüreceksin. Şimdi vakit harcaman, son hafta vakit kazanmak.
+1. `docs/attack_calibration_sources.md` aç, scenario'na karşılık gelen
+   "Tezdeki cümle" blok'unu kopyala — k6 script yorumuna kısaltılmış
+   versiyonunu yapıştır.
+2. Verified anchor URL'lerini script header yorumlarında comment olarak
+   bulundur (reproducibility için).
 
 ### 9.1 HTTP flood (refactored, naive attacker)
 
-`k6/scenarios/02-http-flood.js`:
+`k6/scenarios/02_http_flood.js`:
 
 ```javascript
 import http from 'k6/http';
@@ -648,7 +653,7 @@ export function flow() {
 
 ### 9.2 Low-rate bot (eski "low-slow" rename + refactor)
 
-`k6/scenarios/03-low-rate-bot.js`:
+`k6/scenarios/03_low_rate_bot.js`:
 
 ```javascript
 import http from 'k6/http';
@@ -735,7 +740,7 @@ export function flow() {
 
 ### 9.3 Credential stuffing (YENİ)
 
-`k6/scenarios/04-credential-stuffing.js`:
+`k6/scenarios/04_credential_stuffing.js`:
 
 ```javascript
 import http from 'k6/http';
@@ -814,7 +819,7 @@ Beklenen: %95+ 401, yüksek `loginAttempt` insert oranı (DB log).
 
 ### 9.4 Mimicry flood (YENİ — HOLDOUT scenario)
 
-`k6/scenarios/05-mimicry-flood.js`:
+`k6/scenarios/05_mimicry_flood.js`:
 
 ```javascript
 // MIMICRY FLOOD — mimicry holdout test scenario.
@@ -924,9 +929,9 @@ export function flow() {
 common'a taşı. Detayları çok uzun, prensip:
 
 ```javascript
-// k6/scenarios/06-mix-flood.js
+// k6/scenarios/06_mix_flood.js
 import { runLegitSession } from '../common/legitimate-user-flow.js';
-// flood flow'u 02-http-flood'dan import et veya tekrarla
+// flood flow'u 02_http_flood'dan import et veya tekrarla
 
 export const options = {
   scenarios: {
@@ -949,7 +954,7 @@ export function normalFlow() {
   runLegitSession(BASE_URL, 'legit', 'normal_user_mix_flood');
 }
 export function floodFlow() {
-  // 02-http-flood.js'den flow() function'ını çağır veya tekrar yaz
+  // 02_http_flood.js'den flow() function'ını çağır veya tekrar yaz
 }
 ```
 
@@ -970,7 +975,7 @@ Tezde "previous iteration of traffic generator scripts retained in
 ### 9.7 Sanity (her yeni scenario için 30s smoke)
 
 ```bash
-for s in 02-http-flood 03-low-rate-bot 04-credential-stuffing 05-mimicry-flood; do
+for s in 02_http_flood 03_low_rate_bot 04_credential_stuffing 05_mimicry_flood; do
   echo "=== $s ==="
   k6 run --duration 30s --env BASE_URL=http://localhost:8080 \
     k6/scenarios/$s.js
@@ -995,9 +1000,9 @@ family > 1.
 
 ### 9.8 Day 9 checkpoint
 
-- [ ] `docs/attack_calibration_sources.md` her referans Google Scholar'da
-      doğrulandı (citation count, DOI, yıl)
-- [ ] Bibtex collection hazır
+- [x] `docs/attack_calibration_sources.md` her referans Google Scholar'da
+      doğrulandı (citation count, DOI, yıl) — **Day 8 öncesi tamamlandı**
+- [x] Bibtex collection hazır — **`attack_calibration_sources.md` içinde**
 - [ ] k6 script'lerine inline parameter citation yorumları eklendi
 - [ ] 5 yeni scenario script (`02`-`05`) oluştu, smoke testleri geçti
 - [ ] Mix script'ler refactored (`06`-`08`)
@@ -1005,7 +1010,7 @@ family > 1.
 - [ ] DB sanity: distinct UA family > 1 her scenario'da
 - [ ] Mimicry flood scenario'sunda IP/UA legit ile overlap'lı (eyeball)
 
-`git commit -am "Day 9: literature-grounded attack calibration + 5 scenarios + mix refactor"`
+`git commit -am "Day 9: 5 attack scenarios + mix refactor + inline citation comments"`
 
 ---
 
@@ -1189,37 +1194,37 @@ oluştur** — sabaha 3.5 saatlik gerçekçi trafik DB'de hazır.
 {
   "S1_legit_only": {
     "description": "Legitimate traffic baseline (cost calibration source)",
-    "k6_scripts": ["01-legitimate-only"],
+    "k6_scripts": ["01_legitimate_only"],
     "slowhttp_modes": [],
     "duration_min": 30
   },
   "S2_http_flood": {
     "description": "Legit + HTTP flood (naive UA, IP overlap)",
-    "k6_scripts": ["01-legitimate-only", "02-http-flood"],
+    "k6_scripts": ["01_legitimate_only", "02_http_flood"],
     "slowhttp_modes": [],
     "duration_min": 30
   },
   "S3_low_rate_bot": {
     "description": "Legit + low-rate scraping bot",
-    "k6_scripts": ["01-legitimate-only", "03-low-rate-bot"],
+    "k6_scripts": ["01_legitimate_only", "03_low_rate_bot"],
     "slowhttp_modes": [],
     "duration_min": 30
   },
   "S4_credential_stuffing": {
     "description": "Legit + credential stuffing (95%+ 401)",
-    "k6_scripts": ["01-legitimate-only", "04-credential-stuffing"],
+    "k6_scripts": ["01_legitimate_only", "04_credential_stuffing"],
     "slowhttp_modes": [],
     "duration_min": 30
   },
   "S5_mimicry_flood": {
     "description": "Legit + mimicry flood (HOLDOUT, test-only)",
-    "k6_scripts": ["01-legitimate-only", "05-mimicry-flood"],
+    "k6_scripts": ["01_legitimate_only", "05_mimicry_flood"],
     "slowhttp_modes": [],
     "duration_min": 30
   },
   "S6_slowloris": {
     "description": "Legit + real slowloris + slow-POST",
-    "k6_scripts": ["01-legitimate-only"],
+    "k6_scripts": ["01_legitimate_only"],
     "slowhttp_modes": ["slowloris", "slow_post"],
     "duration_min": 30
   }
@@ -1312,19 +1317,19 @@ run_scenario() {
     k6 run --duration "${RECOVERY_MIN}m" \
       --env "BASE_URL=http://localhost:8080" \
       --env "SCENARIO_ID=${id}_recovery" \
-      "k6/scenarios/01-legitimate-only.js" \
+      "k6/scenarios/01_legitimate_only.js" \
       > "logs/${id}_recovery.log" 2>&1
 }
 
 mkdir -p logs
 
 # Sırayla çalıştır
-run_scenario "S1_legit_only"           "01-legitimate-only" ""                    30
-run_scenario "S2_http_flood"           "01-legitimate-only,02-http-flood" ""      30
-run_scenario "S3_low_rate_bot"         "01-legitimate-only,03-low-rate-bot" ""    30
-run_scenario "S4_credential_stuffing"  "01-legitimate-only,04-credential-stuffing" "" 30
-run_scenario "S5_mimicry_flood"        "01-legitimate-only,05-mimicry-flood" ""   30
-run_scenario "S6_slowloris"            "01-legitimate-only" "slowloris,slow_post" 30
+run_scenario "S1_legit_only"           "01_legitimate_only" ""                    30
+run_scenario "S2_http_flood"           "01_legitimate_only,02_http_flood" ""      30
+run_scenario "S3_low_rate_bot"         "01_legitimate_only,03_low_rate_bot" ""    30
+run_scenario "S4_credential_stuffing"  "01_legitimate_only,04_credential_stuffing" "" 30
+run_scenario "S5_mimicry_flood"        "01_legitimate_only,05_mimicry_flood" ""   30
+run_scenario "S6_slowloris"            "01_legitimate_only" "slowloris,slow_post" 30
 
 echo "All scenarios completed."
 ```
