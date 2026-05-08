@@ -53,6 +53,7 @@ export function flow() {
   const baseHeaders = {
     'Content-Type':       'application/json',
     'x-simulation-label': 'http_flood',
+    'x-scenario-id': SCENARIO_ID,
     'x-test-client-ip':   p.ip,
     'User-Agent':         p.ua,
   };

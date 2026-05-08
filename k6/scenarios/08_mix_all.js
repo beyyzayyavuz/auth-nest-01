@@ -78,6 +78,7 @@ export function floodFlow() {
   const headers = {
     'Content-Type':       'application/json',
     'x-simulation-label': 'http_flood_mix_all',
+    'x-scenario-id': SCENARIO_ID,
     'x-test-client-ip':   p.ip,
     'User-Agent':         p.ua,
   };
@@ -119,6 +120,7 @@ export function slowBotFlow() {
   const headers = {
     'Content-Type':       'application/json',
     'x-simulation-label': 'low_rate_bot_mix_all',
+    'x-scenario-id': SCENARIO_ID,
     'x-test-client-ip':   s.ip,
     'User-Agent':         s.ua,
   };

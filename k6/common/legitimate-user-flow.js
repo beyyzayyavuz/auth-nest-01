@@ -11,6 +11,7 @@ import {
 import { getIpPool } from './ip-pool.js';
 import { THINK, sessionLength, zipfSample } from './cadence.js';
 
+const SCENARIO_ID = __ENV.SCENARIO_ID || 'manual';
 // VU state cache (her VU için 1 kez)
 const vuStates = {};
 
@@ -68,6 +69,7 @@ export function buildBaseHeaders(state) {
   return {
     'Content-Type':       'application/json',
     'Accept':             'application/json, text/plain, */*',
+    'x-scenario-id': SCENARIO_ID,
     'Accept-Language':    state.acceptLanguage,
     'Accept-Encoding':    state.acceptEncoding,
     'x-simulation-label': state.label,

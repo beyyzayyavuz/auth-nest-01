@@ -71,6 +71,7 @@ export function floodFlow() {
   const headers = {
     'Content-Type':       'application/json',
     'x-simulation-label': 'http_flood_mix',
+    'x-scenario-id': SCENARIO_ID,
     'x-test-client-ip':   p.ip,
     'User-Agent':         p.ua,
   };

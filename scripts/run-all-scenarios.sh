@@ -75,12 +75,22 @@ run_scenario() {
   end_scenario "$id" "$ended"
 
   echo "  Scenario ended. Recovery period (${RECOVERY_MIN} min legit-only)..."
-  SCENARIO_ID="${id}_recovery" \
-    k6 run --duration "${RECOVERY_MIN}m" \
-      --env "BASE_URL=http://localhost:8080" \
-      --env "SCENARIO_ID=${id}_recovery" \
-      "k6/scenarios/01_legitimate_only.js" \
-      > "logs/${id}_recovery.log" 2>&1
+  
+  # ESKİ (--duration ile, 1-VU mode):
+  SCENARIO_ID="$id" \
+    k6 run --duration "${duration_min}m" \
+    --env "BASE_URL=http://localhost:8080" \
+    --env "SCENARIO_ID=$id" \
+    "k6/scenarios/$script.js" \
+    > "logs/${id}_${script}.log" 2>&1 &
+
+  # YENİ (scenarios config drives, multi-VU):
+  SCENARIO_ID="$id" \
+    k6 run \
+    --env "BASE_URL=http://localhost:8080" \
+    --env "SCENARIO_ID=$id" \
+    "k6/scenarios/$script.js" \
+    > "logs/${id}_${script}.log" 2>&1 &
 }
 
 mkdir -p logs

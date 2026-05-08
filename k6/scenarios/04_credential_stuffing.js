@@ -61,6 +61,7 @@ export function flow() {
       headers: {
         'Content-Type':       'application/json',
         'x-simulation-label': 'credential_stuffing',
+        'x-scenario-id': SCENARIO_ID,
         'x-test-client-ip':   s.ip,
         'User-Agent':         s.ua,
       },

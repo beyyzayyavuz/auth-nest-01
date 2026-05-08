@@ -66,6 +66,7 @@ export function flow() {
     'Accept-Language':    s.lang,
     'Accept-Encoding':    s.enc,
     'x-simulation-label': 'mimicry_flood',
+    'x-scenario-id': SCENARIO_ID,
     'x-test-client-ip':   s.ip,
     'User-Agent':         s.ua,
   };

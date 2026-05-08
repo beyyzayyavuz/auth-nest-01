@@ -45,6 +45,7 @@ export function flow() {
   const headers = {
     'Content-Type':       'application/json',
     'x-simulation-label': 'low_rate_bot',
+    'x-scenario-id': SCENARIO_ID,
     'x-test-client-ip':   s.ip,
     'User-Agent':         s.ua,
   };
