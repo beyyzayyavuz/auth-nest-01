@@ -33,6 +33,17 @@ services:
     extra_hosts:
       # Linux'ta host'a erişim için (Mac/Windows zaten otomatik)
       - "host.docker.internal:host-gateway"
+      
+  slowhttptest:
+    build: ./infra/slowhttptest
+    container_name: ddos_slowhttptest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - attack    # default'ta başlamasın, manuel start
 
 volumes:
   postgres_data:
+
+
+

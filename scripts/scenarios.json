@@ -1,0 +1,38 @@
+{
+  "S1_legit_only": {
+    "description": "Legitimate traffic baseline (cost calibration source)",
+    "k6_scripts": ["01_legitimate_only"],
+    "slowhttp_modes": [],
+    "duration_min": 30
+  },
+  "S2_http_flood": {
+    "description": "Legit + HTTP flood (naive UA, IP overlap)",
+    "k6_scripts": ["01_legitimate_only", "02_http_flood"],
+    "slowhttp_modes": [],
+    "duration_min": 30
+  },
+  "S3_low_rate_bot": {
+    "description": "Legit + low-rate scraping bot",
+    "k6_scripts": ["01_legitimate_only", "03_low_rate_bot"],
+    "slowhttp_modes": [],
+    "duration_min": 30
+  },
+  "S4_credential_stuffing": {
+    "description": "Legit + credential stuffing (95%+ 401)",
+    "k6_scripts": ["01_legitimate_only", "04_credential_stuffing"],
+    "slowhttp_modes": [],
+    "duration_min": 30
+  },
+  "S5_mimicry_flood": {
+    "description": "Legit + mimicry flood (HOLDOUT, test-only)",
+    "k6_scripts": ["01_legitimate_only", "05_mimicry_flood"],
+    "slowhttp_modes": [],
+    "duration_min": 30
+  },
+  "S6_slowloris": {
+    "description": "Legit + real slowloris + slow-POST",
+    "k6_scripts": ["01_legitimate_only"],
+    "slowhttp_modes": ["slowloris", "slow_post"],
+    "duration_min": 30
+  }
+}
