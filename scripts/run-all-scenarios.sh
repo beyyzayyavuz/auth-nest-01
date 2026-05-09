@@ -3,7 +3,7 @@ set -e
 
 SCENARIOS_FILE="scripts/scenarios.json"
 RECOVERY_MIN=3
-DURATION_PER_SCENARIO=1  # dakika
+DURATION_PER_SCENARIO=30  # dakika
 
 # Postgres'e scenario insert helper
 insert_scenario() {
@@ -27,12 +27,12 @@ end_scenario() {
 
 run_scenario() {
   local id="$1"
-  local k6_scripts="$2"      # comma-separated
-  local slowhttp_modes="$3"  # comma-separated
-  local duration_min="$4"
+  local k6_scripts="$2"
+  local slowhttp_modes="$3"
+  local duration_min="$4"   # ARTIK SADECE slowhttptest İÇİN — k6 scenarios config'i 30 dk drive ediyor
 
   echo "==================================================="
-  echo "Scenario: $id (${duration_min} min)"
+  echo "Scenario: $id (k6 scenarios config drives duration; slowhttptest=${duration_min}m)"
   echo "==================================================="
 
   local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -40,13 +40,13 @@ run_scenario() {
 
   local pids=()
 
-  # k6 scripts (background)
+  # k6 scripts (background, NO --duration: scenarios config drives 30 min)
   IFS=',' read -ra K6_ARR <<< "$k6_scripts"
   for script in "${K6_ARR[@]}"; do
     [ -z "$script" ] && continue
     echo "  Starting k6 $script..."
     SCENARIO_ID="$id" \
-      k6 run --duration "${duration_min}m" \
+      k6 run \
         --env "BASE_URL=http://localhost:8080" \
         --env "SCENARIO_ID=$id" \
         "k6/scenarios/$script.js" \
@@ -54,7 +54,7 @@ run_scenario() {
     pids+=($!)
   done
 
-  # slowhttptest modes (background)
+  # slowhttptest modes (background, duration_min seconds)
   if [ -n "$slowhttp_modes" ]; then
     IFS=',' read -ra SLOW_ARR <<< "$slowhttp_modes"
     for mode in "${SLOW_ARR[@]}"; do
@@ -74,23 +74,16 @@ run_scenario() {
   local ended=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   end_scenario "$id" "$ended"
 
+  # Recovery — short legit-only post-attack period (multi-VU short run)
   echo "  Scenario ended. Recovery period (${RECOVERY_MIN} min legit-only)..."
-  
-  # ESKİ (--duration ile, 1-VU mode):
-  SCENARIO_ID="$id" \
-    k6 run --duration "${duration_min}m" \
-    --env "BASE_URL=http://localhost:8080" \
-    --env "SCENARIO_ID=$id" \
-    "k6/scenarios/$script.js" \
-    > "logs/${id}_${script}.log" 2>&1 &
-
-  # YENİ (scenarios config drives, multi-VU):
-  SCENARIO_ID="$id" \
+  SCENARIO_ID="${id}_recovery" \
     k6 run \
-    --env "BASE_URL=http://localhost:8080" \
-    --env "SCENARIO_ID=$id" \
-    "k6/scenarios/$script.js" \
-    > "logs/${id}_${script}.log" 2>&1 &
+      --vus 8 \
+      --duration "${RECOVERY_MIN}m" \
+      --env "BASE_URL=http://localhost:8080" \
+      --env "SCENARIO_ID=${id}_recovery" \
+      "k6/scenarios/01_legitimate_only.js" \
+      > "logs/${id}_recovery.log" 2>&1
 }
 
 mkdir -p logs
