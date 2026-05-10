@@ -39,24 +39,46 @@ df = df[df['label'] != 'unknown'].copy()
 print(f'\nLabel distribution:')
 print(df['label'].value_counts())
 
-# Split: mimicry_flood holdout test-only
-holdout = df[df['label'] == 'mimicry_flood'].copy()
-in_dist = df[df['label'] != 'mimicry_flood'].copy()
-print(f'\nIn-distribution: {len(in_dist):,}, Holdout (mimicry): {len(holdout):,}')
+# Holdout groups
+mimicry_holdout = df[df['label'] == 'mimicry_flood'].copy()
+slow_holdout = df[df['label'] == 'slow_http'].copy()
 
-# Time-based train/val/test split on in_dist
-in_dist = in_dist.sort_values('window_start').reset_index(drop=True)
-n = len(in_dist)
-train_end = int(n * 0.70)
-val_end = int(n * 0.85)
-in_dist['split'] = 'train'
-in_dist.loc[train_end:val_end, 'split'] = 'val'
-in_dist.loc[val_end:, 'split'] = 'test'
+# Supervised in-distribution classes
+# slow_http has too few rows for supervised training, so it is evaluated separately.
+in_dist = df[~df['label'].isin(['mimicry_flood', 'slow_http'])].copy()
 
-# Holdout: tamamı mimicry_test
-holdout['split'] = 'mimicry_test'
+print(f'\nIn-distribution supervised rows: {len(in_dist):,}')
+print(f'Mimicry holdout rows: {len(mimicry_holdout):,}')
+print(f'Slow HTTP holdout rows: {len(slow_holdout):,}')
 
-final = pd.concat([in_dist, holdout], ignore_index=True)
+# Stratified split instead of pure time-based split.
+# Pure time split caused some classes to disappear from val/test because scenarios were run sequentially.
+train_df, temp_df = train_test_split(
+    in_dist,
+    test_size=0.30,
+    random_state=42,
+    stratify=in_dist['label']
+)
+
+val_df, test_df = train_test_split(
+    temp_df,
+    test_size=0.50,
+    random_state=42,
+    stratify=temp_df['label']
+)
+
+train_df['split'] = 'train'
+val_df['split'] = 'val'
+test_df['split'] = 'test'
+
+mimicry_holdout['split'] = 'mimicry_test'
+slow_holdout['split'] = 'slow_http_test'
+
+final = pd.concat(
+    [train_df, val_df, test_df, mimicry_holdout, slow_holdout],
+    ignore_index=True
+)
+
 final.to_parquet(OUT / 'dataset_split.parquet', compression='snappy')
 print(f'\nSaved dataset_split.parquet')
 print(final.groupby(['split', 'label']).size().unstack(fill_value=0))
