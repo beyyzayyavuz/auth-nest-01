@@ -76,7 +76,7 @@ First, the evaluation is based on a controlled synthetic experimental environmen
 
 Second, the system is evaluated on a single API application. The feature set includes application-specific concepts such as route templates and endpoint cost profiles. Therefore, the results may not directly generalize to other applications without recalibration.
 
-Third, full external validation on a public dataset such as CIC-DDoS2019 was not used as a primary evaluation source. Public flow-based datasets do not directly provide many of the application-layer and backend-cost features used in this study, such as route templates, endpoint cost, login behavior, backend timing, and Nginx timeout enrichment.
+Third, full external validation on a public dataset such as CIC-DDoS2019 was not used as a primary evaluation source. A limited CIC-DDoS2019 UDPLag flow-level sanity check was performed and showed strong benign/attack separation under a stratified split. However, this does not constitute direct external validation of the proposed API-layer detector because CIC-DDoS2019 does not provide route templates, endpoint cost, backend timing, login behavior, or Nginx timeout-derived features. Therefore, external validation on application-layer production traces remains necessary.
 
 Fourth, the adversary is not fully adaptive. The mimicry flood scenario imitates surface-level legitimate characteristics, but it does not iteratively adapt to the trained model. A stronger adversary could potentially optimize endpoint choices, timing, request cost, and User-Agent behavior after observing detector feedback.
 

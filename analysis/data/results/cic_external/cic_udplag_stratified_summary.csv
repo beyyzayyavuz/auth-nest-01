@@ -1,0 +1,2 @@
+dataset,rows,train_rows,test_rows,features,accuracy,macro_f1,weighted_f1,attack_recall,benign_fpr,note
+CIC-DDoS2019 UDPLag subset combined stratified,25104,17572,7532,77,0.998672331386086,0.9983900240658485,0.9986726894169297,0.9986903648269411,0.0013717421124828531,"Limited external flow-level sanity check using stratified split. Not direct validation of the API-layer proposed model because CIC lacks route templates, endpoint cost, backend timing, and nginx timeout features."

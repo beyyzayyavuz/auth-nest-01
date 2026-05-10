@@ -457,9 +457,23 @@ This suggests that the proposed model produces a low false positive rate under t
 
 ## 4.6 External Validation Note
 
-CIC-DDoS2019 external validation was considered as a best-effort extension. However, the proposed feature set is highly application-layer specific. It includes route templates, endpoint cost, login behavior, backend timing, status-code ratios, and Nginx partial/timeout signals. Public flow-level datasets such as CIC-DDoS2019 generally provide packet-flow and network-level features rather than application-specific API and backend-cost features.
+CIC-DDoS2019 external validation was considered as a best-effort extension. Since the proposed model relies on application-layer and backend-cost features such as route templates, endpoint cost, login behavior, backend timing, status-code ratios, and Nginx partial/timeout signals, the public CIC-DDoS2019 flow-level feature space is not directly compatible with the proposed API-layer feature set.
 
-For this reason, CIC-DDoS2019 was not used as a primary validation source in this study. The primary evaluation instead relies on controlled in-system scenarios, mimicry holdout testing, random-label permutation checks, ablation analysis, false positive measurement, and detection latency analysis. The lack of full external validation is treated as a limitation and discussed in Chapter 5.# 5. Discussion
+For this reason, CIC-DDoS2019 was not used as a direct validation source for the proposed ISO+RF model. Instead, a limited external flow-level sanity check was performed on the CIC-DDoS2019 UDPLag subset. The UDPLag training and testing parquet files were combined, binary labels were created as `benign` and `attack`, and a stratified train/test split was applied using CIC flow-level numeric features.
+
+In this limited external sanity check, the flow-level Random Forest achieved:
+
+| Metric | Value |
+|---|---:|
+| Accuracy | 0.9987 |
+| Macro-F1 | 0.9984 |
+| Weighted-F1 | 0.9987 |
+| Attack recall | 0.9987 |
+| Benign FPR | 0.0014 |
+
+The confusion matrix contained 2184 correctly classified benign flows, 3 benign false positives, 5338 correctly classified attack flows, and 7 attack false negatives. These results show that the CIC flow-level features contain strong benign/attack separation signal under a stratified split.
+
+However, this experiment should be interpreted only as a limited external reference check, not as direct external validation of the proposed API-layer detector. The proposed model uses API-specific and backend-specific features that are not available in CIC-DDoS2019. Therefore, full external validation with production API traces or public datasets containing route-level and backend-cost telemetry remains future work.# 5. Discussion
 
 This chapter interprets the results of the experimental evaluation and discusses their implications for behavior-based API-layer DDoS detection. The main finding is that the proposed feature set remains effective against mimicry-style attacks in the controlled experimental environment. In particular, the mimicry flood scenario was excluded from training and used only as a holdout set, yet the proposed model classified most mimicry windows as attack-like rather than legitimate.
 
@@ -537,7 +551,7 @@ First, the evaluation is based on a controlled synthetic experimental environmen
 
 Second, the system is evaluated on a single API application. The feature set includes application-specific concepts such as route templates and endpoint cost profiles. Therefore, the results may not directly generalize to other applications without recalibration.
 
-Third, full external validation on a public dataset such as CIC-DDoS2019 was not used as a primary evaluation source. Public flow-based datasets do not directly provide many of the application-layer and backend-cost features used in this study, such as route templates, endpoint cost, login behavior, backend timing, and Nginx timeout enrichment.
+Third, full external validation on a public dataset such as CIC-DDoS2019 was not used as a primary evaluation source. A limited CIC-DDoS2019 UDPLag flow-level sanity check was performed and showed strong benign/attack separation under a stratified split. However, this does not constitute direct external validation of the proposed API-layer detector because CIC-DDoS2019 does not provide route templates, endpoint cost, backend timing, login behavior, or Nginx timeout-derived features. Therefore, external validation on application-layer production traces remains necessary.
 
 Fourth, the adversary is not fully adaptive. The mimicry flood scenario imitates surface-level legitimate characteristics, but it does not iteratively adapt to the trained model. A stronger adversary could potentially optimize endpoint choices, timing, request cost, and User-Agent behavior after observing detector feedback.
 

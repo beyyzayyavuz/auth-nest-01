@@ -1,0 +1,2 @@
+dataset,train_rows,test_rows,features,accuracy,macro_f1,weighted_f1,attack_recall,benign_fpr,note
+CIC-DDoS2019 UDPLag subset,12639,12465,77,0.4591255515443241,0.4525997072091132,0.42679840789407275,0.24442452090104225,0.0,Limited external flow-level sanity check; not direct API-layer proposed-model validation due to feature-space mismatch.

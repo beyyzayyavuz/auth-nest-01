@@ -1,0 +1,2 @@
+file,rows_sampled,columns,label_col,numeric_columns,available_candidate_features
+UDPLag-testing.parquet,12465,78,Label,77,"Flow Duration,Total Fwd Packets,Total Backward Packets,Flow Bytes/s,Flow Packets/s,Flow IAT Mean,Flow IAT Std,Flow IAT Max,Flow IAT Min,Fwd IAT Mean,Fwd IAT Std,Bwd IAT Mean,Bwd IAT Std,SYN Flag Count,ACK Flag Count,RST Flag Count,PSH Flag Count"
