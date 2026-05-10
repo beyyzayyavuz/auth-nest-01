@@ -285,6 +285,7 @@ Bir şey fark ettim: backend’de /health ve /ping endpointleri varmış ama End
 
 
 Bu açıklamalara cevap verilmesinden sonra duruma göre Day 13.3'e başlayacağım.
+Bu açıklamalara cevap verildi. sorun yok devam.
 
 ## Day 12–13 Fix Note: Nginx 408 → Connection/Tier2 Feature Enrichment
 # Problem
