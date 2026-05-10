@@ -984,3 +984,5 @@ Bu 5 çıktı tezindeki ana iddiayı kanıtlar. Diğer figürler nice-to-have.
 **Bu, defensible bir bitirme tezi.** Mimicry holdout sonucu (%92 recall, %5.74 evasion) tezindeki "behavioral DDoS detection robust to surface-feature mimicry" iddiasını **ampirik olarak destekliyor**. Endpoint-cost-aware feature integration, citation verification protocol, dual-trace structural-prior calibration — methodological contributions olarak güçlendiriyor.
 
 İyi şanslar.
+Canım kendim sağol.
+Kendi kendime konuşma evresine geçtim. Emeği geçenlere tebrikler. 4. sınıf bitti.(daha bitmedi nereye karar veriyorsun)

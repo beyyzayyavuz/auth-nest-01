@@ -1,0 +1,13 @@
+# 6. Conclusion
+
+This thesis investigated whether behavior-based API-layer DDoS detection can remain effective when attackers imitate surface-level legitimate traffic characteristics. The study focused on a controlled API environment where legitimate traffic, HTTP flood, low-rate bot, credential stuffing, mimicry flood, and slow HTTP scenarios were generated and analyzed.
+
+The main contribution of the study is a behavior-based detection pipeline that combines application-layer request features, endpoint-cost-aware features, backend timing features, global window features, and infrastructure-layer timeout signals. The proposed model uses a stacked approach in which an Isolation Forest trained only on normal-user traffic produces an anomaly score, and a Random Forest classifier uses this score together with the full behavioral feature set.
+
+The experimental results show that the proposed ISO+RF model achieved strong in-distribution performance, with a test accuracy of 0.9914 and macro-F1 of 0.9923. More importantly, the mimicry flood scenario was excluded from training and evaluated only as a holdout set. The proposed model classified 92.41% of mimicry windows as `http_flood`, while only 5.61% were classified as `normal_user`. This indicates that the detector did not rely only on surface-level characteristics such as User-Agent diversity, but instead used broader behavioral signals.
+
+The ablation study further supports this conclusion. The UA-only configuration performed poorly, while the full feature set achieved the most balanced performance. This suggests that endpoint entropy, endpoint cost, status-code behavior, timing statistics, global source diversity, and anomaly-score features collectively contributed to mimicry robustness.
+
+The study also showed that slow HTTP behavior requires infrastructure-layer visibility. Nginx 408 timeout enrichment was necessary to capture partial and timeout connection signals that did not reach the backend middleware. This highlights the importance of combining reverse-proxy telemetry with application-layer logs in API-layer DDoS detection.
+
+Overall, the results suggest that behavior-based API-layer DDoS detection can provide robustness against mimicry-style attacks in a controlled setting. However, the study is limited to a single application and synthetic laboratory traffic. Future work should evaluate the approach on multiple applications, production traces, richer external datasets, and adaptive adversaries that iteratively optimize their behavior against the detector.

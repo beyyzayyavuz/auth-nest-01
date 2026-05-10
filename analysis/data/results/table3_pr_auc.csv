@@ -1,0 +1,5 @@
+class,PR_AUC_baseline,PR_AUC_proposed
+credential_stuffing,1.0,1.0
+http_flood,0.9995300995742892,0.9994924223674744
+low_rate_bot,1.0,1.0
+normal_user,0.9993435936408286,0.9993220386313636

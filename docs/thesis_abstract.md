@@ -1,0 +1,11 @@
+# Abstract
+
+Distributed Denial-of-Service (DDoS) attacks against API-based systems are increasingly difficult to detect when attackers avoid simple high-rate patterns and imitate legitimate client behavior. Traditional rate-based defenses may fail when malicious traffic is distributed across multiple sources, uses realistic request rates, or mimics surface-level characteristics such as User-Agent diversity.
+
+This thesis presents a behavior-based API-layer DDoS detection pipeline that combines application-layer request features, endpoint-cost-aware features, backend timing signals, global source diversity, and infrastructure-layer timeout indicators. A controlled experimental environment was implemented using a NestJS API, PostgreSQL, Nginx, k6, and slowhttptest. Six traffic scenarios were generated: legitimate traffic, HTTP flood, low-rate bot, credential stuffing, mimicry flood, and slow HTTP. Features were aggregated over 10-second windows at IP and subnet levels.
+
+The proposed model uses a stacked anomaly-supervised approach. First, an Isolation Forest is trained only on normal-user traffic to generate an anomaly score. Then, a Random Forest classifier is trained using the full behavioral feature set plus this anomaly score. The model is evaluated against rate-threshold, EWMA/CUSUM, and Random Forest baselines.
+
+The proposed model achieved 0.9914 test accuracy and 0.9923 macro-F1 on the in-distribution test set. The main evaluation used a mimicry flood scenario that was excluded from training and used only as a holdout set. The proposed model classified 92.41% of mimicry windows as HTTP flood and only 5.61% as normal user traffic, corresponding to approximately 94.39% binary attack recall. Ablation results showed that User-Agent-only features performed poorly, indicating that the model did not rely on surface-level shortcuts.
+
+The results suggest that behavior-based API-layer features can improve robustness against mimicry-style DDoS traffic in a controlled setting. Limitations include synthetic traffic generation, single-application scope, limited external validation, and the absence of fully adaptive adversaries.

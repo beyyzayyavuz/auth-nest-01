@@ -1,0 +1,8 @@
+,precision,recall,f1-score,support
+credential_stuffing,1.0,1.0,1.0,378.0
+http_flood,0.9899,0.9879,0.9889,495.0
+low_rate_bot,0.987,1.0,0.9935,76.0
+normal_user,0.9868,0.9868,0.9868,454.0
+accuracy,0.9914,0.9914,0.9914,0.9914
+macro avg,0.9909,0.9937,0.9923,1403.0
+weighted avg,0.9914,0.9914,0.9914,1403.0
