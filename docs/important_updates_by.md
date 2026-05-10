@@ -465,3 +465,23 @@ slow_http için requestCountAttack artık 0 değil.
 S1–S5 tarafında partial/timeout değerleri 0 kalmaya devam ediyor.
 S6_slowloris ve S6_slowloris_slowonly tarafında partial/timeout sinyali doğru şekilde görünüyor.
 Sonuç olarak WindowLabel ve tier2_features.parquet çıktıları slow HTTP sinyalini doğru şekilde temsil eder hale geldi.
+
+## Day 14
+[✓] 6 scenario data'sı DB'de, expected counts
+[✓] Connection table dolu, slowloris ayrışıyor
+[✓] Tier 2 features parquet dolu
+[✓] EndpointCostProfile 4 quartile
+[✓] WindowLabel'da scenario/key/window kayıtları var
+[✓] Class separation visual sanity geçti
+[✓] Random-label permutation diff > 0.4
+
+| Sorun                                      | İlk olasılık | Güncel durum                     | Mitigasyon sonucu                                                                                 |
+| ------------------------------------------ | -----------: | -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| k6 refactor 2 günde bitmez                 |         Orta | Kapandı                          | S1–S5 senaryoları çalıştı; credential stuffing ve mimicry üretildi                                |
+| slowhttptest nginx'e karşı dayanıklı değil |         Orta | Kısmen gerçekleşti ama yönetildi | slowhttptest 71 sn’de bitti; nginx 408 üretti; nginx enrichment ile S6 sinyali pipeline’a taşındı |
+| Overnight run gece çakar                   |        Düşük | Büyük ölçüde kapandı             | S1–S5 tamamlandı; S6 broken ayrıldı, final S6 tekrar çalıştırıldı                                 |
+| Tier 2 aggregation çok yavaş               |         Orta | Kapandı                          | 502K request işlendi; 12K+ feature row üretildi; dask/chunk gerekmedi                             |
+| Class separation görsel ayrım yok          |       Yüksek | Kapandı / paniğe gerek yok       | Boxplot’ta partial_ratio, endpoint_entropy, status_4xx_ratio gibi feature’lar ayrım gösterdi      |
+| Random-label permutation > 0.4             |       Yüksek | Kapandı                          | Real=0.979, Permuted=0.277, Diff=0.702; leakage alarmı yok                                        |
+
+FINISHED. MAY 10, 00.57
