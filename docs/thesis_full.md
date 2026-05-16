@@ -6,7 +6,7 @@ This thesis presents a behavior-based API-layer DDoS detection pipeline that com
 
 The proposed model uses a stacked anomaly-supervised approach. First, an Isolation Forest is trained only on normal-user traffic to generate an anomaly score. Then, a Random Forest classifier is trained using the full behavioral feature set plus this anomaly score. The model is evaluated against rate-threshold, EWMA/CUSUM, and Random Forest baselines.
 
-The proposed model achieved 0.9914 test accuracy and 0.9923 macro-F1 on the in-distribution test set. The main evaluation used a mimicry flood scenario that was excluded from training and used only as a holdout set. The proposed model classified 92.41% of mimicry windows as HTTP flood and only 5.61% as normal user traffic, corresponding to approximately 94.39% binary attack recall. Ablation results showed that User-Agent-only features performed poorly, indicating that the model did not rely on surface-level shortcuts.
+The proposed model achieved 0.9914 test accuracy and 0.9923 macro-F1 on the in-distribution test set. The main evaluation used a mimicry flood scenario that was excluded from training and used only as a holdout set. The proposed model classified 91.96% of mimicry windows as HTTP flood and only 5.74% as normal user traffic, corresponding to approximately 94.26% binary attack recall. Ablation results showed that User-Agent-only features performed poorly, indicating that the model did not rely on surface-level shortcuts.
 
 The results suggest that behavior-based API-layer features can improve robustness against mimicry-style DDoS traffic in a controlled setting. Limitations include synthetic traffic generation, single-application scope, limited external validation, and the absence of fully adaptive adversaries.# 1. Introduction
 
@@ -379,11 +379,11 @@ Table 4 shows the mimicry holdout prediction distribution.
 
 | Predicted class | Baseline RF | Proposed ISO+RF |
 |---|---:|---:|
-| http_flood | 0.9152 | 0.9241 |
-| normal_user | 0.0638 | 0.0561 |
-| low_rate_bot | 0.0210 | 0.0198 |
+| http_flood | 0.9152 | 0.9196 |
+| normal_user | 0.0638 | 0.0574 |
+| low_rate_bot | 0.0210 | 0.0230 |
 
-The proposed model classified `92.41%` of mimicry windows as `http_flood`. Only `5.61%` of mimicry windows were classified as `normal_user`. Therefore, the proposed model achieved an approximate binary attack recall of `94.39%` on the mimicry holdout set.
+The proposed model classified `91.96%` of mimicry windows as `http_flood`. Only `5.74%` of mimicry windows were classified as `normal_user`. Therefore, the proposed model achieved an approximate binary attack recall of `94.26%` on the mimicry holdout set.
 
 Figure 2 visualizes the mimicry prediction distribution.
 
@@ -441,6 +441,8 @@ Table 5 summarizes the scenario-level latency results.
 | S5_mimicry_flood | mimicry_flood | True | 0 | 0.8960 |
 | S6_slowloris | slow_http | True | 0 | 0.0020 |
 
+*Note:* The S6 slow HTTP result should be interpreted differently from the supervised attack classes. Although the first timeout-based signal appeared at the beginning of the scenario, the scenario-level recall was low (`0.0020`) because slow HTTP behavior appeared as sparse Nginx timeout/partial-connection events rather than dense request-level windows.
+
 The median detection latency was `0.0` seconds, and the p95 latency was approximately `8.0` seconds. The slowest detection was observed for the low-rate bot scenario, which was detected after 10 seconds. This is expected because low-rate attacks are designed to be closer to normal behavior.
 
 The slow HTTP scenario was detected immediately when timeout/partial-connection signals appeared, but its scenario-level recall was low because the slow HTTP signal was sparse in the 30-minute window. This is consistent with the Nginx behavior observed during the experiment, where slow HTTP connections were closed around the timeout threshold.
@@ -473,7 +475,9 @@ In this limited external sanity check, the flow-level Random Forest achieved:
 
 The confusion matrix contained 2184 correctly classified benign flows, 3 benign false positives, 5338 correctly classified attack flows, and 7 attack false negatives. These results show that the CIC flow-level features contain strong benign/attack separation signal under a stratified split.
 
-However, this experiment should be interpreted only as a limited external reference check, not as direct external validation of the proposed API-layer detector. The proposed model uses API-specific and backend-specific features that are not available in CIC-DDoS2019. Therefore, full external validation with production API traces or public datasets containing route-level and backend-cost telemetry remains future work.# 5. Discussion
+However, this experiment should be interpreted only as a limited external reference check, not as direct external validation of the proposed API-layer detector. The proposed model uses API-specific and backend-specific features that are not available in CIC-DDoS2019. Therefore, full external validation with production API traces or public datasets containing route-level and backend-cost telemetry remains future work.
+
+**Method note.** EWMA and CUSUM baselines were evaluated on the stratified non-chronological test split; therefore, their detection performance should not be interpreted as streaming-time detection performance. They are included as feature-space baselines under the same evaluation protocol as the proposed model.# 5. Discussion
 
 This chapter interprets the results of the experimental evaluation and discusses their implications for behavior-based API-layer DDoS detection. The main finding is that the proposed feature set remains effective against mimicry-style attacks in the controlled experimental environment. In particular, the mimicry flood scenario was excluded from training and used only as a holdout set, yet the proposed model classified most mimicry windows as attack-like rather than legitimate.
 
@@ -483,7 +487,7 @@ This chapter interprets the results of the experimental evaluation and discusses
 
 The central question of this thesis is whether behavior-based DDoS detection remains useful when an attacker imitates surface-level legitimate characteristics. The mimicry flood scenario was designed to test this question by introducing more realistic client diversity and avoiding obvious single-source rate spikes.
 
-The results show that the proposed ISO+RF model classified 92.41% of mimicry windows as `http_flood`, while only 5.61% were classified as `normal_user`. This corresponds to an approximate binary attack recall of 94.39% on the mimicry holdout set. Since the mimicry class was not included in training, this result suggests that the model did not simply memorize the mimicry scenario. Instead, it learned behavioral patterns that generalized to a previously unseen attack variant.
+The results show that the proposed ISO+RF model classified 91.96% of mimicry windows as `http_flood`, while only 5.74% were classified as `normal_user`. This corresponds to an approximate binary attack recall of 94.26% on the mimicry holdout set. Since the mimicry class was not included in training, this result suggests that the model did not simply memorize the mimicry scenario. Instead, it learned behavioral patterns that generalized to a previously unseen attack variant.
 
 The ablation study further supports this interpretation. The UA-only model performed very poorly, with validation accuracy around 0.0949. This indicates that the classifier was not relying primarily on User-Agent diversity as a shortcut. This point is important because mimicry traffic showed higher User-Agent entropy than both naive flood and legitimate traffic. If the classifier had depended mainly on User-Agent-related features, the UA-only ablation would have performed much better. Instead, the full model required a broader behavioral feature set.
 
@@ -547,6 +551,12 @@ Fourth, the ablation study explicitly checks whether the model depends on narrow
 
 Several limitations should be acknowledged.
 
+Application-level rate limiting, IP blocking, and account lockout logic were deliberately disabled in AuthService during the experimental traffic generation phase. This isolates the behavioral detection layer's signal from auth-side mitigations. In production deployment, both layers would coexist; auth-side checks would handle credential stuffing while behavioral detection would identify distributed attacks that bypass per-account thresholds.
+
+In the synthetic legitimate flow, computed log-normal think times were not applied through sleep() calls, resulting in higher per-VU request rates than typical production legitimate traffic. This makes the rate-based discrimination task harder rather than easier and does not invalidate the behavioral detection conclusion.
+
+Backend-cost measurement also has an implementation-level limitation. During development, different parts of the application used different Prisma client paths. `AuthService` used the extended `PrismaService`, where query interception was available, whereas `UserService` used a separate client instance. Consequently, query timing values for some user-facing endpoints, particularly the search endpoint, were not fully captured in `RequestLog`. For this reason, endpoint-cost features are interpreted as relative and categorical indicators of endpoint asymmetry rather than precise absolute measurements of backend execution cost.
+
 First, the evaluation is based on a controlled synthetic experimental environment. Although the scenarios are designed to reflect realistic attack behaviors, they are not a substitute for large-scale production traffic.
 
 Second, the system is evaluated on a single API application. The feature set includes application-specific concepts such as route templates and endpoint cost profiles. Therefore, the results may not directly generalize to other applications without recalibration.
@@ -558,6 +568,8 @@ Fourth, the adversary is not fully adaptive. The mimicry flood scenario imitates
 Fifth, the slow HTTP evaluation is limited by the behavior of Nginx timeout handling. The slow HTTP signal appeared as a sparse set of timeout-heavy windows rather than a sustained supervised class. This makes slow HTTP detection better suited to rule-based or connection-level evaluation in this experiment.
 
 Finally, the experiment does not include TLS fingerprinting, HTTP/2-specific attack vectors, or browser-level fingerprint features. These could provide additional detection or evasion signals in production environments.
+
+
 
 ---
 
@@ -581,7 +593,7 @@ This thesis investigated whether behavior-based API-layer DDoS detection can rem
 
 The main contribution of the study is a behavior-based detection pipeline that combines application-layer request features, endpoint-cost-aware features, backend timing features, global window features, and infrastructure-layer timeout signals. The proposed model uses a stacked approach in which an Isolation Forest trained only on normal-user traffic produces an anomaly score, and a Random Forest classifier uses this score together with the full behavioral feature set.
 
-The experimental results show that the proposed ISO+RF model achieved strong in-distribution performance, with a test accuracy of 0.9914 and macro-F1 of 0.9923. More importantly, the mimicry flood scenario was excluded from training and evaluated only as a holdout set. The proposed model classified 92.41% of mimicry windows as `http_flood`, while only 5.61% were classified as `normal_user`. This indicates that the detector did not rely only on surface-level characteristics such as User-Agent diversity, but instead used broader behavioral signals.
+The experimental results show that the proposed ISO+RF model achieved strong in-distribution performance, with a test accuracy of 0.9914 and macro-F1 of 0.9923. More importantly, the mimicry flood scenario was excluded from training and evaluated only as a holdout set. The proposed model classified 91.96% of mimicry windows as `http_flood`, while only 5.74% were classified as `normal_user`. This indicates that the detector did not rely only on surface-level characteristics such as User-Agent diversity, but instead used broader behavioral signals.
 
 The ablation study further supports this conclusion. The UA-only configuration performed poorly, while the full feature set achieved the most balanced performance. This suggests that endpoint entropy, endpoint cost, status-code behavior, timing statistics, global source diversity, and anomaly-score features collectively contributed to mimicry robustness.
 

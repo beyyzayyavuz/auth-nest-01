@@ -87,11 +87,11 @@ Table 4 shows the mimicry holdout prediction distribution.
 
 | Predicted class | Baseline RF | Proposed ISO+RF |
 |---|---:|---:|
-| http_flood | 0.9152 | 0.9241 |
-| normal_user | 0.0638 | 0.0561 |
-| low_rate_bot | 0.0210 | 0.0198 |
+| http_flood | 0.9152 | 0.9196 |
+| normal_user | 0.0638 | 0.0574 |
+| low_rate_bot | 0.0210 | 0.0230 |
 
-The proposed model classified `92.41%` of mimicry windows as `http_flood`. Only `5.61%` of mimicry windows were classified as `normal_user`. Therefore, the proposed model achieved an approximate binary attack recall of `94.39%` on the mimicry holdout set.
+The proposed model classified `91.96%` of mimicry windows as `http_flood`. Only `5.74%` of mimicry windows were classified as `normal_user`. Therefore, the proposed model achieved an approximate binary attack recall of `94.26%` on the mimicry holdout set.
 
 Figure 2 visualizes the mimicry prediction distribution.
 
@@ -149,6 +149,8 @@ Table 5 summarizes the scenario-level latency results.
 | S5_mimicry_flood | mimicry_flood | True | 0 | 0.8960 |
 | S6_slowloris | slow_http | True | 0 | 0.0020 |
 
+*Note:* The S6 slow HTTP result should be interpreted differently from the supervised attack classes. Although the first timeout-based signal appeared at the beginning of the scenario, the scenario-level recall was low (`0.0020`) because slow HTTP behavior appeared as sparse Nginx timeout/partial-connection events rather than dense request-level windows.
+
 The median detection latency was `0.0` seconds, and the p95 latency was approximately `8.0` seconds. The slowest detection was observed for the low-rate bot scenario, which was detected after 10 seconds. This is expected because low-rate attacks are designed to be closer to normal behavior.
 
 The slow HTTP scenario was detected immediately when timeout/partial-connection signals appeared, but its scenario-level recall was low because the slow HTTP signal was sparse in the 30-minute window. This is consistent with the Nginx behavior observed during the experiment, where slow HTTP connections were closed around the timeout threshold.
@@ -182,3 +184,5 @@ In this limited external sanity check, the flow-level Random Forest achieved:
 The confusion matrix contained 2184 correctly classified benign flows, 3 benign false positives, 5338 correctly classified attack flows, and 7 attack false negatives. These results show that the CIC flow-level features contain strong benign/attack separation signal under a stratified split.
 
 However, this experiment should be interpreted only as a limited external reference check, not as direct external validation of the proposed API-layer detector. The proposed model uses API-specific and backend-specific features that are not available in CIC-DDoS2019. Therefore, full external validation with production API traces or public datasets containing route-level and backend-cost telemetry remains future work.
+
+**Method note.** EWMA and CUSUM baselines were evaluated on the stratified non-chronological test split; therefore, their detection performance should not be interpreted as streaming-time detection performance. They are included as feature-space baselines under the same evaluation protocol as the proposed model.

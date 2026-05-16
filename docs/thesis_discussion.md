@@ -8,7 +8,7 @@ This chapter interprets the results of the experimental evaluation and discusses
 
 The central question of this thesis is whether behavior-based DDoS detection remains useful when an attacker imitates surface-level legitimate characteristics. The mimicry flood scenario was designed to test this question by introducing more realistic client diversity and avoiding obvious single-source rate spikes.
 
-The results show that the proposed ISO+RF model classified 92.41% of mimicry windows as `http_flood`, while only 5.61% were classified as `normal_user`. This corresponds to an approximate binary attack recall of 94.39% on the mimicry holdout set. Since the mimicry class was not included in training, this result suggests that the model did not simply memorize the mimicry scenario. Instead, it learned behavioral patterns that generalized to a previously unseen attack variant.
+The results show that the proposed ISO+RF model classified 91.96% of mimicry windows as `http_flood`, while only 5.74% were classified as `normal_user`. This corresponds to an approximate binary attack recall of 94.26% on the mimicry holdout set. Since the mimicry class was not included in training, this result suggests that the model did not simply memorize the mimicry scenario. Instead, it learned behavioral patterns that generalized to a previously unseen attack variant.
 
 The ablation study further supports this interpretation. The UA-only model performed very poorly, with validation accuracy around 0.0949. This indicates that the classifier was not relying primarily on User-Agent diversity as a shortcut. This point is important because mimicry traffic showed higher User-Agent entropy than both naive flood and legitimate traffic. If the classifier had depended mainly on User-Agent-related features, the UA-only ablation would have performed much better. Instead, the full model required a broader behavioral feature set.
 
@@ -72,6 +72,12 @@ Fourth, the ablation study explicitly checks whether the model depends on narrow
 
 Several limitations should be acknowledged.
 
+Application-level rate limiting, IP blocking, and account lockout logic were deliberately disabled in AuthService during the experimental traffic generation phase. This isolates the behavioral detection layer's signal from auth-side mitigations. In production deployment, both layers would coexist; auth-side checks would handle credential stuffing while behavioral detection would identify distributed attacks that bypass per-account thresholds.
+
+In the synthetic legitimate flow, computed log-normal think times were not applied through sleep() calls, resulting in higher per-VU request rates than typical production legitimate traffic. This makes the rate-based discrimination task harder rather than easier and does not invalidate the behavioral detection conclusion.
+
+Backend-cost measurement also has an implementation-level limitation. During development, different parts of the application used different Prisma client paths. `AuthService` used the extended `PrismaService`, where query interception was available, whereas `UserService` used a separate client instance. Consequently, query timing values for some user-facing endpoints, particularly the search endpoint, were not fully captured in `RequestLog`. For this reason, endpoint-cost features are interpreted as relative and categorical indicators of endpoint asymmetry rather than precise absolute measurements of backend execution cost.
+
 First, the evaluation is based on a controlled synthetic experimental environment. Although the scenarios are designed to reflect realistic attack behaviors, they are not a substitute for large-scale production traffic.
 
 Second, the system is evaluated on a single API application. The feature set includes application-specific concepts such as route templates and endpoint cost profiles. Therefore, the results may not directly generalize to other applications without recalibration.
@@ -83,6 +89,8 @@ Fourth, the adversary is not fully adaptive. The mimicry flood scenario imitates
 Fifth, the slow HTTP evaluation is limited by the behavior of Nginx timeout handling. The slow HTTP signal appeared as a sparse set of timeout-heavy windows rather than a sustained supervised class. This makes slow HTTP detection better suited to rule-based or connection-level evaluation in this experiment.
 
 Finally, the experiment does not include TLS fingerprinting, HTTP/2-specific attack vectors, or browser-level fingerprint features. These could provide additional detection or evasion signals in production environments.
+
+
 
 ---
 

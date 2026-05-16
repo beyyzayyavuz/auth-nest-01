@@ -105,8 +105,8 @@ df_split = pd.read_parquet(ROOT / 'data/features/dataset_split.parquet')
 df_split = df_split[df_split['split'].isin(['train', 'val', 'test'])]
 
 key_features = ['req_rate', 'iat_cv', 'endpoint_entropy', 'endpoint_cost_sum',
-                'partial_ratio', 'status_4xx_ratio', 'ua_entropy']
-fig, axes = plt.subplots(2, 4, figsize=(16, 8))
+                'status_4xx_ratio', 'login_present_ratio']   # 6 panel → 2x3 grid
+fig, axes = plt.subplots(2, 3, figsize=(15, 8))
 for ax, feat in zip(axes.flatten(), key_features):
     if feat not in df_split.columns:
         continue
@@ -114,7 +114,7 @@ for ax, feat in zip(axes.flatten(), key_features):
     ax.set_title(feat)
     ax.tick_params(axis='x', rotation=30)
     ax.set_xlabel('')
-axes.flatten()[-1].axis('off')  # boş hücreyi kapat
+
 plt.suptitle('Class separation for key behavioral features')
 plt.tight_layout()
 plt.savefig(FIG / 'fig5_class_separation.png')

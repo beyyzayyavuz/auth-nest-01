@@ -52,7 +52,7 @@ y_proba_rf_test = rf.predict_proba(X_test)
 
 print('Training proposed (ISO+RF)...')
 X_train_legit = X_train[y_train == 'normal_user']
-iso = IsolationForest(contamination=0.05, random_state=42)
+iso = IsolationForest(n_estimators=200, contamination=0.05, random_state=42, n_jobs=-1)
 iso.fit(X_train_legit)
 X_train_aug = X_train.copy()
 X_train_aug['anomaly_score'] = -iso.decision_function(X_train)
