@@ -66,3 +66,4 @@ analysis/data/raw/
 analysis/data/parsed/
 analysis/data/baselines/*.png
 analysis/venv/
+backups/
