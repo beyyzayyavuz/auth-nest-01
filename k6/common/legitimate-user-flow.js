@@ -118,7 +118,7 @@ export function ensureAuthenticated(state, baseUrl) {
   try { state.accessToken = res.json('accessToken'); }
   catch { return false; }
   if (!state.accessToken) return false;
-  THINK.medium();
+  sleep(THINK.medium());
   return true;
 }
 
@@ -161,7 +161,7 @@ export function runLegitSession(baseUrl, role = 'legit', label = 'normal_user') 
   const state = getVuState(role, label);
 
   group('User Session', function () {
-    THINK.short();
+    sleep(THINK.short());
     while (state.pagesRemaining > 0) {
       const next = nextState(state.lastPageState);
       if (next === 'exit') break;
@@ -170,17 +170,17 @@ export function runLegitSession(baseUrl, role = 'legit', label = 'normal_user') 
       if (next === 'profile') ok = doProfileRequest(state, baseUrl);
       else if (next === 'search') ok = doSearchRequest(state, baseUrl, 5);
 
-      if (!ok) { THINK.medium(); break; }
+      if (!ok) { sleep(THINK.medium());  break; }
       state.lastPageState = next;
       state.pagesRemaining -= 1;
 
-      if (next === 'profile') THINK.long();
-      else THINK.medium();
+      if (next === 'profile') sleep(THINK.long());
+      else sleep(THINK.medium());
     }
 
     // %8 explicit logout
     if (Math.random() < 0.08 && state.accessToken) {
-      THINK.medium();
+      sleep(THINK.medium());
       doLogoutRequest(state, baseUrl);
     } else {
       state.accessToken = null;
@@ -189,6 +189,6 @@ export function runLegitSession(baseUrl, role = 'legit', label = 'normal_user') 
     }
 
     // Inter-session gap — heavy-tailed
-    THINK.long();
+    sleep(THINK.long());
   });
 }
