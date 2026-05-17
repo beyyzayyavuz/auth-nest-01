@@ -3,12 +3,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';   // ← YENİ
 
 @Injectable()
 export class UserService {
-  private prisma = new PrismaClient();
+  constructor(private prisma: PrismaService) {}              // ← DEĞİŞTİ
 
   async createUser(email: string, password: string): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
