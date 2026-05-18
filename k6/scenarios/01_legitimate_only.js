@@ -10,9 +10,9 @@ export const options = {
       exec: 'flow',
       startVUs: 0,
       stages: [
-        { duration: '2m',  target: 5  },
-        { duration: '25m', target: 15 },
-        { duration: '3m',  target: 0  },
+        { duration: '2m',  target: 30  },   // ← 5 → 30
+        { duration: '25m', target: 100 },   // ← 15 → 100
+        { duration: '3m',  target: 0   },
       ],
       gracefulRampDown: '30s',
       tags: { trafficLabel: 'normal_user', scenarioId: SCENARIO_ID },
