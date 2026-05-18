@@ -1,6 +1,6 @@
 scenario_id,expected_label,detected,latency_sec,latency_min,scenario_recall
-S2_http_flood,http_flood,True,0.0,0.0,0.8696198554822494
-S3_low_rate_bot,low_rate_bot,True,10.0,0.1666666666666666,0.4663101604278075
-S4_credential_stuffing,credential_stuffing,True,0.0,0.0,0.8200772200772201
-S5_mimicry_flood,mimicry_flood,True,0.0,0.0,0.8960104643557881
-S6_slowloris,slow_http,True,0.0,0.0,0.0019685039370078
+S2_http_flood,http_flood,True,0.0,0.0,0.9994689325544344
+S3_low_rate_bot,low_rate_bot,True,0.0,0.0,1.0
+S4_credential_stuffing,credential_stuffing,True,0.0,0.0,0.9840142095914742
+S5_mimicry_flood,mimicry_flood,True,0.0,0.0,0.9564867042707494
+S6_slowloris,slow_http,True,0.0,0.0,1.0

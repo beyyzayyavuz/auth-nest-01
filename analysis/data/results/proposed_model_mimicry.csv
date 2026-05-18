@@ -1,3 +1,3 @@
 model,split,mimicry_binary_recall,mimicry_missed_normal,mimicry_total
-baseline_rf,mimicry_test,0.9362244897959183,100,1568
-proposed_iso_rf,mimicry_test,0.9426020408163265,90,1568
+baseline_rf,mimicry_test,0.9692070823710547,40,1299
+proposed_iso_rf,mimicry_test,0.8945342571208622,137,1299

@@ -17,9 +17,9 @@ const vuStates = {};
 
 // Markov geçiş matrisi — test app endpoint'lerine özgü
 const transitionMatrix = {
-  start:   { profile: 0.30, search: 0.55, exit: 0.15 },
-  profile: { search:  0.55, profile: 0.10, exit: 0.35 },
-  search:  { search:  0.45, profile: 0.30, exit: 0.25 },
+  start:   { profile: 0.35, search: 0.60, exit: 0.05 },
+  profile: { search:  0.65, profile: 0.20, exit: 0.15 },
+  search:  { search:  0.55, profile: 0.35, exit: 0.10 },
 };
 
 const searchTerms = [
@@ -59,7 +59,7 @@ export function getVuState(role = 'legit', label = 'normal_user') {
     acceptLanguage: randomItem(ACCEPT_LANGS),
     acceptEncoding: randomItem(ACCEPT_ENCS),
     accessToken: null,
-    pagesRemaining: sessionLength(),
+    pagesRemaining: sessionLength(0.05, 0.90, 25),
     lastPageState: 'start',
   };
   return vuStates[vuId];
@@ -151,7 +151,7 @@ export function doLogoutRequest(state, baseUrl) {
   const res = http.post(`${baseUrl}/auth/logout`, null,
     { headers: buildAuthHeaders(state) });
   state.accessToken = null;
-  state.pagesRemaining = sessionLength();
+  state.pagesRemaining = sessionLength(0.05, 0.90, 25);
   state.lastPageState = 'start';
   return [200, 201, 204].includes(res.status);
 }
@@ -184,7 +184,7 @@ export function runLegitSession(baseUrl, role = 'legit', label = 'normal_user') 
       doLogoutRequest(state, baseUrl);
     } else {
       state.accessToken = null;
-      state.pagesRemaining = sessionLength();
+      state.pagesRemaining = sessionLength(0.05, 0.90, 25);
       state.lastPageState = 'start';
     }
 

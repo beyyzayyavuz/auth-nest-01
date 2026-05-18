@@ -1,5 +1,5 @@
 ,pred_credential_stuffing,pred_http_flood,pred_low_rate_bot,pred_normal_user
-true_credential_stuffing,378,0,0,0
-true_http_flood,0,489,0,6
-true_low_rate_bot,0,0,76,0
-true_normal_user,0,6,1,447
+true_credential_stuffing,396,0,0,0
+true_http_flood,0,332,0,0
+true_low_rate_bot,0,0,145,0
+true_normal_user,0,0,0,573

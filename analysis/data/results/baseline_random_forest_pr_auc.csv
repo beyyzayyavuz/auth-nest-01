@@ -1,9 +1,9 @@
 split,class,pr_auc
 val,credential_stuffing,1.0
-val,http_flood,0.9994993563743677
-val,low_rate_bot,1.0
-val,normal_user,0.9992293861360104
+val,http_flood,1.0
+val,low_rate_bot,0.9999534060199422
+val,normal_user,1.0
 test,credential_stuffing,1.0
-test,http_flood,0.9995300995742892
+test,http_flood,1.0
 test,low_rate_bot,1.0
-test,normal_user,0.9993435936408286
+test,normal_user,1.0

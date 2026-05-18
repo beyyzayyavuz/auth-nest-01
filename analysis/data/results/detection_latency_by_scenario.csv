@@ -1,6 +1,6 @@
 scenario_id,expected_label,n_windows,scenario_start,first_detection,detected,latency_sec,latency_min,detection_mode,detected_windows,total_attack_windows,scenario_recall,pred_label_counts
-S2_http_flood,http_flood,3183,2026-05-08 18:16:10+00:00,2026-05-08 18:16:10+00:00,True,0.0,0.0,rf_strict_multiclass,2768,3183,0.8696198554822494,"{'http_flood': 2768, 'normal_user': 415}"
-S3_low_rate_bot,low_rate_bot,935,2026-05-08 18:20:30+00:00,2026-05-08 18:20:40+00:00,True,10.0,0.16666666666666666,rf_strict_multiclass,436,935,0.4663101604278075,"{'normal_user': 499, 'low_rate_bot': 436}"
-S4_credential_stuffing,credential_stuffing,2590,2026-05-08 18:25:00+00:00,2026-05-08 18:25:00+00:00,True,0.0,0.0,rf_strict_multiclass,2124,2590,0.8200772200772201,"{'credential_stuffing': 2124, 'normal_user': 462, 'http_flood': 4}"
-S5_mimicry_flood,mimicry_flood,1529,2026-05-08 18:29:40+00:00,2026-05-08 18:29:40+00:00,True,0.0,0.0,rf_binary_pred_not_normal,1370,1529,0.8960104643557881,"{'http_flood': 1337, 'normal_user': 159, 'low_rate_bot': 33}"
-S6_slowloris,slow_http,508,2026-05-09 15:01:30+00:00,2026-05-09 15:01:30+00:00,True,0.0,0.0,slow_http_rule_partial_timeout,1,508,0.001968503937007874,{}
+S2_http_flood,http_flood,1883,2026-05-18 11:50:50+00:00,2026-05-18 11:50:50+00:00,True,0.0,0.0,rf_strict_multiclass,1882,1883,0.9994689325544344,"{'http_flood': 1882, 'low_rate_bot': 1}"
+S3_low_rate_bot,low_rate_bot,791,2026-05-18 13:31:40+00:00,2026-05-18 13:31:40+00:00,True,0.0,0.0,rf_strict_multiclass,791,791,1.0,{'low_rate_bot': 791}
+S4_credential_stuffing,credential_stuffing,2252,2026-05-18 14:13:20+00:00,2026-05-18 14:13:20+00:00,True,0.0,0.0,rf_strict_multiclass,2216,2252,0.9840142095914742,"{'credential_stuffing': 2216, 'http_flood': 36}"
+S5_mimicry_flood,mimicry_flood,1241,2026-05-18 12:29:40+00:00,2026-05-18 12:29:40+00:00,True,0.0,0.0,rf_binary_pred_not_normal,1187,1241,0.9564867042707494,"{'http_flood': 1181, 'normal_user': 54, 'low_rate_bot': 6}"
+S6_slowloris,slow_http,1,2026-05-18 14:53:20+00:00,2026-05-18 14:53:20+00:00,True,0.0,0.0,slow_http_rule_partial_timeout,1,1,1.0,{}
