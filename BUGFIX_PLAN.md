@@ -513,8 +513,8 @@ cat > /tmp/compare_results.py <<'EOF'
 import pandas as pd
 from pathlib import Path
 
-OLD = Path("backups/results_OLD_20260517")  # senin OLD klasörünün adı
-NEW = Path("analysis/data/results")
+OLD = Path("backups/results_OLD_extracted/analysis/data/results")
+NEW = Path("backups/results_NEW_20260518")
 
 print("=" * 70)
 print("COMPARISON: OLD (bugs) vs NEW (fixed)")

@@ -111,7 +111,7 @@ Additional derived features were computed by comparing API traffic behavior agai
 
 NASA web server traces were used as a calibration reference during the design of legitimate traffic generation and baseline-distance features. However, the final synthetic legitimate API traffic was not treated as an exact replay of NASA traffic. The experimental system is an API-specific environment with a small number of routes, while the NASA trace represents a large historical web server workload.
 
-A later distributional comparison showed that the synthetic legitimate traffic did not exactly match the NASA IAT distribution. The IAT KS distance was high, indicating a substantial mismatch. Endpoint popularity showed a Zipf-like decreasing trend, but the synthetic API had a steeper slope due to the smaller endpoint set. Therefore, NASA traces are described in this study as calibration references rather than exact validation targets.
+A later distributional comparison showed that the synthetic legitimate traffic shows substantial alignment with NASA in the V3 configuration. The IAT KS distance is 0.321, with the synthetic distribution closely tracking NASA in the 0.1–10 second range. Endpoint popularity shows a Zipf-like decreasing trend; the synthetic API has a steeper slope (α ≈ 2.20 vs NASA α ≈ 1.25) due to the smaller endpoint set. Therefore, NASA traces are described in this study as structural calibration references rather than exact validation targets — the shape (log-normal IAT, Zipf endpoint popularity) is preserved, while numerical parameters are reparameterized per deployment context.
 
 ---
 
@@ -161,19 +161,19 @@ The third baseline is a supervised multiclass Random Forest trained on the full 
 
 ---
 
-## 3.8 Proposed Model
+## 3.8 Proposed Approach
 
-The proposed model is a stacked anomaly-supervised approach consisting of two layers.
+The proposed approach is a supervised Random Forest classifier trained on the full multi-tier behavioral feature pipeline (37 features across the four tiers described in §3.4). The classifier uses 200 trees with the `balanced_subsample` class-weight strategy to handle class-size differences across the four supervised classes.
 
-### Layer A — Isolation Forest
+The key methodological choices are:
 
-The first layer is an Isolation Forest trained only on `normal_user` training windows. This model produces an anomaly score for every window. Since the Isolation Forest decision function assigns higher scores to more normal samples, the score was inverted so that higher `anomaly_score` values indicate more anomalous behavior.
+1. **Multi-tier feature combination.** The model receives behavioral features from all four tiers simultaneously (connection-level, 10-second window, global, baseline-distance). The ablation study in §4.4 demonstrates that this combination is necessary; no single feature group alone is sufficient for mimicry generalization.
 
-### Layer B — Random Forest with anomaly score
+2. **Mimicry holdout protocol.** The `mimicry_flood` class is excluded from training and validation; the model only encounters mimicry during the holdout test. This evaluates whether the model generalizes to a previously unseen attack variant.
 
-The second layer is a Random Forest classifier trained on the original feature set plus the Isolation Forest anomaly score. This allows the supervised model to use both behavior-specific features and a general normality-deviation signal.
+3. **Semi-supervised alternative (ISO+RF).** A stacked extension was additionally evaluated, in which an Isolation Forest trained only on `normal_user` windows produces an `anomaly_score` feature, which is then added to the supervised Random Forest input. The Isolation Forest decision function is inverted so that higher `anomaly_score` values indicate more anomalous behavior. This alternative is evaluated and reported alongside the main model; under the V3 configuration it provides no additional discriminative power on the mimicry holdout (see §4.3 and Discussion §5.7).
 
-The proposed model is evaluated against the Random Forest baseline to determine whether the anomaly score provides additional benefit, especially on the mimicry holdout set.
+The proposed Random Forest is evaluated against three baselines (per-IP rate threshold, EWMA/CUSUM, and a default-configured Random Forest with no class weighting) and the ISO+RF alternative.
 
 ---
 
