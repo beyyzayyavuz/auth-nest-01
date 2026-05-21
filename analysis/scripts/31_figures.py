@@ -23,20 +23,118 @@ FIG = RESULTS / 'figures'
 FIG.mkdir(parents=True, exist_ok=True)
 
 # ============================================================
-# Figür 1 — Confusion matrix (Proposed model)
+# Figür 1 — Cross-validation stability check
 # ============================================================
 
-cm = pd.read_csv(RESULTS / 'table5_confusion_matrix.csv', index_col=0)
-plt.figure(figsize=(8, 6))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
-plt.xlabel('Predicted')
-plt.ylabel('True')
-plt.title('Confusion Matrix — Proposed Model (Test Set)')
+# Load CV results
+per_fold = pd.read_csv(RESULTS / "cross_validation_per_fold.csv")
+summary = pd.read_csv(RESULTS / "cross_validation_summary.csv")
+
+# Pull values
+acc_mean = summary.loc[summary["metric"] == "accuracy", "mean"].values[0]
+acc_std  = summary.loc[summary["metric"] == "accuracy", "std"].values[0]
+f1_mean  = summary.loc[summary["metric"] == "macro_f1", "mean"].values[0]
+f1_std   = summary.loc[summary["metric"] == "macro_f1", "std"].values[0]
+
+# Plot style
+plt.rcParams.update({
+    "font.size": 11,
+    "figure.dpi": 120,
+    "savefig.dpi": 200,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+})
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
+
+# ============================================================
+# LEFT PANEL — per-fold accuracy bars + mean line
+# ============================================================
+ax = axes[0]
+folds = per_fold["fold"].astype(int)
+accs = per_fold["accuracy"]
+
+colors = ["#1E2761"] * 5  # navy
+bars = ax.bar(folds, accs, color=colors, alpha=0.85,
+              edgecolor="#131A47", linewidth=1.2, width=0.6)
+
+# Mean line
+ax.axhline(acc_mean, color="#F96167", linestyle="--",
+           linewidth=2, label=f"Mean = {acc_mean:.4f}", zorder=5)
+
+# Std band
+ax.axhspan(acc_mean - acc_std, acc_mean + acc_std,
+           alpha=0.15, color="#F96167",
+           label=f"± Std ({acc_std:.4f})")
+
+# Annotate each bar
+for bar, acc in zip(bars, accs):
+    ax.text(bar.get_x() + bar.get_width() / 2, acc + 0.0001,
+            f"{acc:.4f}", ha="center", va="bottom",
+            fontsize=10, color="#1E2761", fontweight="bold")
+
+# Y-axis tight zoom (since all values are near 1.0)
+y_min = min(accs.min(), acc_mean - acc_std) - 0.0005
+y_max = max(accs.max(), acc_mean + acc_std) + 0.0008
+ax.set_ylim(y_min, y_max)
+
+ax.set_xticks(folds)
+ax.set_xlabel("Fold", fontsize=12)
+ax.set_ylabel("Accuracy", fontsize=12)
+ax.set_title("5-Fold Cross-Validation — Per-Fold Accuracy",
+             fontsize=13, color="#1E2761", fontweight="bold", pad=12)
+ax.legend(loc="lower right", framealpha=0.95, fontsize=10)
+ax.grid(axis="y", alpha=0.3, linestyle=":")
+
+# ============================================================
+# RIGHT PANEL — summary metrics comparison
+# ============================================================
+ax = axes[1]
+
+metrics = ["Accuracy", "Macro-F1", "Weighted-F1"]
+means = [
+    summary.loc[summary["metric"] == "accuracy", "mean"].values[0],
+    summary.loc[summary["metric"] == "macro_f1", "mean"].values[0],
+    summary.loc[summary["metric"] == "weighted_f1", "mean"].values[0],
+]
+stds = [
+    summary.loc[summary["metric"] == "accuracy", "std"].values[0],
+    summary.loc[summary["metric"] == "macro_f1", "std"].values[0],
+    summary.loc[summary["metric"] == "weighted_f1", "std"].values[0],
+]
+colors_r = ["#1E2761", "#2B3A8C", "#02C39A"]
+
+bars = ax.bar(metrics, means, yerr=stds, color=colors_r, alpha=0.85,
+              capsize=10, edgecolor="black", linewidth=1.2, width=0.55,
+              error_kw={"linewidth": 1.8, "ecolor": "#F96167"})
+
+# Annotate
+for bar, m, s in zip(bars, means, stds):
+    ax.text(bar.get_x() + bar.get_width() / 2,
+            m + s + 0.00015,
+            f"{m:.4f}\n± {s:.4f}",
+            ha="center", va="bottom",
+            fontsize=10, color="#1E2761", fontweight="bold")
+
+ax.set_ylim(0.997, 1.0012)
+ax.set_ylabel("Score (mean across 5 folds)", fontsize=12)
+ax.set_title("5-Fold CV — Summary Metrics (Mean ± Std)",
+             fontsize=13, color="#1E2761", fontweight="bold", pad=12)
+ax.grid(axis="y", alpha=0.3, linestyle=":")
+
+# Overall figure title
+fig.suptitle(
+    "Cross-Validation Stability Check — Proposed Random Forest Model",
+    fontsize=14, color="#131A47", fontweight="bold", y=1.02,
+)
+
 plt.tight_layout()
-plt.savefig(FIG / 'fig1_confusion_matrix.png')
-plt.savefig(FIG / 'fig1_confusion_matrix.pdf')
+plt.savefig(FIG / "fig1_cross_validation.png", bbox_inches="tight")
+plt.savefig(FIG / "fig1_cross_validation.pdf", bbox_inches="tight")
 plt.close()
-print('Saved fig1_confusion_matrix')
+print('Saved fig1_cross_validation')
+
+
 
 # ============================================================
 # Figür 2 — Mimicry holdout prediction distribution
