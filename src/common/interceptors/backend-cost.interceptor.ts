@@ -12,7 +12,8 @@ import { requestContext } from '../request-context/request-context';
 
 @Injectable()
 export class BackendCostInterceptor implements NestInterceptor {
-  intercept(ctx: ExecutionContext, next: CallHandler): Observable<any> {
+  // İsteğin (request) NestJS kontrolcüsüne (controller) girip işleme başladığı tam o saniyeyi kaydeden ve işi bittiğinde başlık yazma sürecini başlatan kronometre hakemidir.
+  intercept(ctx: ExecutionContext, next: CallHandler): Observable<any> { 
     const httpCtx = ctx.switchToHttp();
     const req = httpCtx.getRequest();
     const res = httpCtx.getResponse();
@@ -31,6 +32,7 @@ export class BackendCostInterceptor implements NestInterceptor {
     );
   }
 
+  // İçeride (AsyncLocalStorage kasasında) toplanan tüm CPU, veritabanı ve gizlilik metriklerini alıp, istemciye geri dönecek olan HTTP paketinin kafasına birer etiket (Header) olarak tek tek yapıştıran fabrika işçisidir.
   private writeHeaders(req: any, res: any, store: any) {
     if (!store) return;
     if (res.headersSent) return;
