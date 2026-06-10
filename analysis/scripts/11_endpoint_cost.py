@@ -1,6 +1,13 @@
 """
 S1 (legitimate-only) trafiğinden her route için mean backend cost çıkar.
 EndpointCostProfile tablosuna yaz.
+
+1. Connection: Connects to 'ddos_research' database via psycopg2.
+2. Extraction: Pulls baseline traffic logs where scenarioId is 'S1_legit_only'.
+3. Feature Engineering: Combines DB and CPU times to compute 'totalCost'.
+4. Aggregation: Groups by endpoint/method to find means and 95th percentiles.
+5. Binning: Segments endpoints into 4 cost quartiles (1=cheapest, 4=most expensive).
+6. Persistence: Truncates 'EndpointCostProfile' and populates it with new results.
 """
 
 import psycopg2

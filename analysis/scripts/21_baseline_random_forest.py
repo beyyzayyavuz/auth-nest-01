@@ -10,6 +10,17 @@ Train classes:
 Holdout:
 - mimicry_flood is kept as mimicry_test only.
 - slow_http is not part of supervised multiclass training because it has only 2 rows.
+
+1. Load Matrices: Pull fully engineered numeric X and y parquet folders.
+2. Fit Classifier: Train an ensemble of 200 decision trees using class weighting.
+3. Multi-Class Evaluation: Compute accuracy, macro/weighted F1, and confusion tables.
+4. Precision-Recall AUC: Measure model certainty for each known attack class.
+5. Zero-Day Stress Test: Run the unseen 'mimicry_flood' records through the engine 
+   to evaluate fallback detection and document evasion risks.
+6. Export Diagnostics: Save metrics, prediction logs, and feature importances.
+
+Inputs:  'X_train.parquet', 'y_train.parquet', etc.
+Outputs: Multiple diagnostics files mapping accuracy, PR-AUC, and feature rankings.
 """
 
 import pandas as pd

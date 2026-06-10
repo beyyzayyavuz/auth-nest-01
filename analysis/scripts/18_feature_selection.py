@@ -5,6 +5,15 @@ matrix preparation.
 Day 16'dan gelen dataset_split.parquet'i alır, label-leaking kolonları
 düşürür, random-label permutation testiyle sanity check yapar, ve Day 18+
 modelleri için hazır numerik feature matrislerini parquet olarak kaydeder.
+
+1. Load Splits: Import the multi-fold dataset generated in Day 16.
+2. Clean Leakage: Blacklist meta columns and unique identifiers to eliminate overfit risks.
+3. Vectorize: Isolate numeric datatypes and encode categorical data via One-Hot Encoding.
+4. Permute Check: Shuffle label rows to verify genuine feature signaling using a Random Forest.
+5. Serialize Matrices: Isolate X/y coordinates per fold and export them into training-ready files.
+
+Inputs:  'dataset_split.parquet'
+Outputs: Separate X_{split}.parquet and y_{split}.parquet matrices, 'feature_columns.txt'
 """
 
 import pandas as pd

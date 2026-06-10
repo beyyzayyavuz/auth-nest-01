@@ -12,6 +12,14 @@ Comparison:
 - Baseline RF vs Proposed RF
 - In-distribution val/test metrics
 - Mimicry holdout binary attack recall
+
+1. Parse Input Sets: Load train, validation, test, and out-of-distribution matrices.
+2. Train Layer A (Isolation Forest): Fit an Isolation Forest on true 'normal_user' traffic rows.
+3. Compute Anomaly Features: Generate inverted decision functions to create an anomaly_score metric.
+4. Scale Input Matrix: Concat the anomaly_score into the train/validation/test feature spaces.
+5. Train Layer B (Random Forest): Train an augmented 300-tree multiclass classifier.
+6. Run Stress-Test Diagnostics: Cross-examine baseline versus proposed scores using Macro-F1, 
+   PR-AUC, and out-of-distribution mimicry recall bounds.
 """
 
 import pandas as pd

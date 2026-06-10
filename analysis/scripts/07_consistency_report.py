@@ -1,6 +1,12 @@
 """
 Cross-trace consistency report.
 Tezdeki Section 'Calibration Validity'in ham verisi.
+
+1. Reads saved IAT, Zipf, and Markov baseline JSON files.
+2. Prints cross-dataset comparison tables.
+3. Calculates percentage differences and Markov pairwise differences.
+4. Writes a final thesis-style interpretation.
+5. Saves everything into consistency_report.txt.
 """
 
 import json

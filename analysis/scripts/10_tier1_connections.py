@@ -1,6 +1,19 @@
 """
 Tier 1: per-connection feature extraction.
 RequestLog → Connection table.
+
+1. Connect to PostgreSQL.
+2. Read RequestLog rows that have connId.
+3. Group requests by connId.
+4. Calculate connection-level features.
+5. Clear the Connection table.
+6. Insert one row per connection.
+7. Read nginx access logs.
+8. Find nginx 408 timeout entries.
+9. Match those 408s to scenarios by timestamp.
+10. Update existing Connection rows with timeout/partial counts.
+11. Insert new Connection rows for nginx-only slowloris connections.
+12. Save everything.
 """
 
 import psycopg2

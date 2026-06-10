@@ -12,6 +12,21 @@ Metrikler:
 - Mimicry evasion rate = normal_user olarak sınıflanan oran
 - Mimicry binary attack recall = normal_user dışı sınıflanan oran
 - Baseline RF vs Proposed ISO+RF karşılaştırması
+
+. Load Matrices: Pull pre-processed, aligned parquet splits from disk.
+2. Train Baseline: Fit a standalone 200-tree supervised Random Forest.
+3. Establish Layer A: Train an unsupervised Isolation Forest purely on legit users 
+   to append an inverted 'anomaly_score' matrix.
+4. Train Layer B: Fit an augmented 300-tree Random Forest using the new anomaly feature.
+5. In-Distribution Audit: Extract accuracy and Macro-F1 across known test profiles.
+6. Stress-Test Evasion: Send the unseen mimicry files through both models to trace 
+   exact destination classes (Evasion Rate, Fallback Flood Recall, Binary Alert Recall).
+7. Execute Interpretive Bucketing: Assign a deterministic resilience classification 
+   to the proposed model depending on its structural vulnerability margins.
+
+Inputs:  'X_train.parquet', 'y_train.parquet', 'X_test.parquet', 'X_mimicry_test.parquet'
+Outputs: 'mimicry_holdout_summary.csv', 'mimicry_baseline_vs_proposed.csv', 
+         and an interpretive diagnostic text ledger.
 """
 
 import pandas as pd

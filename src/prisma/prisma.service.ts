@@ -12,9 +12,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       query: {
         $allModels: {
           async $allOperations({ operation, model, args, query }) {
-            const ctx = requestContext.getStore();
-            const start = Date.now();
-            const result = await query(args);
+            const ctx = requestContext.getStore(); // AsyncLocalStorage'dan mevcut request'in metrics objesini al. Yani aslında o anki isteğin izole kasasına bakar.
+            const start = Date.now(); // Kronometre başlat
+            const result = await query(args); // Asıl Prisma query'sini çalıştır ve sorguyu veritabanına gönder.
             const duration = Date.now() - start;
             if (ctx) {
               ctx.dbQueryCount += 1;
@@ -27,10 +27,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }) as PrismaService;
   }
 
+  // Postgres veritabanına giden fiziksel bağlantı köprüsünü kurar. Sunucu açılır açılmaz veritabanına hazır hale gelir.
   async onModuleInit() {
     await this.$connect();
   }
 
+  // Veritabanı bağlantısını temizler. Sunucu kapanırken veritabanı bağlantısını düzgün şekilde kapatır. leak'ler kalmaz böylece.
   async onModuleDestroy() {
     await this.$disconnect();
   }

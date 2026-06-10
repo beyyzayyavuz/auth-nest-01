@@ -6,6 +6,7 @@ Calgary anonymized olduğu için (2 host) atlanır.
 import pandas as pd
 from pathlib import Path
 
+# Set ROOT to the analysis folder.
 ROOT = Path(__file__).resolve().parents[1]
 SESSION_DATASETS = ['nasa_jul95', 'nasa_aug95', 'clarknet_aug28', 'clarknet_sep4']
 PARSED = ROOT / 'data/parsed'
@@ -14,14 +15,19 @@ SESSION_GAP_SEC = 1800
 summary = []
 
 for name in SESSION_DATASETS:
+    # This builds the file path for the current dataset.
     in_path = PARSED / f'{name}.parquet'
     if not in_path.exists():
-        print(f'SKIP {name}: parsed parquet bulunamadı')
+        print(f'SKIP {name}: parsed parquet not found')
+        # Skip the rest of this loop and move to the next dataset.
         continue
 
     print(f'\n=== Sessions: {name} ===')
+    # This reads the parsed dataset into a pandas DataFrame. df: DataFrame is a table-like data structure that pandas uses to store data.
     df = pd.read_parquet(in_path)
-    df = df.sort_values(['host', 'timestamp']).reset_index(drop=True)
+    # pandas keeps the old row numbers unless you reset them. so we follow the standard practice of resetting the index after sorting. 
+    # find sessions, we need to compare each request with the previous request from the same host.
+    df = df.sort_values(['host', 'timestamp']).reset_index(drop=True) 
 
     df['gap_sec'] = df.groupby('host')['timestamp'].diff().dt.total_seconds()
     df['new_session'] = (df.gap_sec.isna()) | (df.gap_sec > SESSION_GAP_SEC)

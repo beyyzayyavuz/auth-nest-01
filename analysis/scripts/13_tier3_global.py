@@ -1,6 +1,23 @@
 """
 Tier 3: Sistem geneli (per-window, all sources aggregated) feature'lar.
 Per-window: tüm scenario boyunca o 10s window'da neler oldu sistem genelinde.
+
+[ PostgreSQL: RequestLog ]
+           │
+           ▼
+[ Veri Yükleme & Zaman Kovalama ] -> Zaman damgaları 10'ar saniyelik bloklara yuvarlanır (bucket_10s).
+           │
+           ▼
+[ Gruplama (Group By) ] ----------> (scenarioId, bucket_10s) bazında gruplar oluşturulur.
+           │
+           ├──> Tekil IP / Subnet Sayımı (nunique)
+           └──> Toplam İstek Sayımı (count) & RPS Hesaplama
+           │
+           ▼
+[ State Durum Döngüsü (For) ] ----> Her pencere için: "Bu IP'ler daha önce geldi mi?" kontrolü.
+           │                        └─> global_new_src_ratio hesaplanır.
+           ▼
+[ Çıktı Katmanı ] ────────────────> tier3_global.parquet olarak diske yazılır.
 """
 
 import psycopg2

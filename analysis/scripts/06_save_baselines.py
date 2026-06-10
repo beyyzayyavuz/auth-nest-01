@@ -1,6 +1,12 @@
 """
 Tüm fit parametrelerini CalibrationBaseline tablosuna yaz.
 Calgary: sadece zipf (path-only). Diğerleri: iat + zipf + markov + initial.
+
+1. Reads baseline JSON files.
+2. Decides which fitting method was used.
+3. Inserts each baseline into PostgreSQL.
+4. Updates existing rows if they already exist.
+5. Saves everything into the CalibrationBaseline table.
 """
 
 import json

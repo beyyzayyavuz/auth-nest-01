@@ -3,6 +3,20 @@ Per-window:
 - markov_log_likelihood: NASA-trained transition matrix'e göre window'daki
   endpoint sequence'ının log-likelihood'u
 - iat_ks_distance: window IAT distribution vs NASA empirical CDF KS distance
+
+TRADITIONAL DEFENSE                        ADVANCED BEHAVIORAL ANALYSIS
++--------------------------+               +----------------------------------+
+|   TIER 2: MICRO LAYER    |               |       TIER 4: SESSION LAYER      |
+|  "What is this one IP    |               |  "Is this authenticated session  |
+|   doing right now?"      |               |   behaving like a real human?"   |
++--------------------------+               +----------------------------------+
+             |                                              |
+             v                                              v
++--------------------------+               +----------------------------------+
+|   TIER 3: MACRO LAYER    |               |     BASELINE DISTANCE LAYER      |
+|  "Is the whole system    |               |  "Does their request timing and  |
+|   under attack?"         |               |   page-clicking match human math?"|
++--------------------------+               +----------------------------------+
 """
 
 import psycopg2

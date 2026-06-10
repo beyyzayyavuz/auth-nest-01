@@ -1,6 +1,27 @@
 """
 Tier 4: Per-session features. sessionIdHash varsa (auth flow), session
 düzeyinde metrikler.
+
+[ PostgreSQL: RequestLog ]
+               │
+               ▼  (Filtreleme: sessionIdHash boş olmayanlar)
+   [ Aktif Oturum Kayıtları ]
+               │
+               ▼  (Gruplama: scenarioId + sessionIdHash)
+     ┌─────────┴─────────┐
+     ▼                   ▼
+[Zaman Bazlı]      [Davranış Bazlı]
+  ├─ İstek Sayısı     ├─ Tekil Endpoint (Sayfa) Sayısı
+  └─ Oturum Süresi    └─ Login İstek Sayısı
+     │                   │
+     └─────────┬─────────┘
+               ▼
+   [ Oransal Türetmeler ] 
+     ├─ Oturum Hızı (requests_per_second)
+     └─ Çeşitlilik Oranı (endpoints_per_request)
+               │
+               ▼
+   [ tier4_sessions.parquet ]
 """
 
 import psycopg2

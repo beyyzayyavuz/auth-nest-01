@@ -7,6 +7,11 @@ Threshold, train setindeki normal_user req_rate p95 değerinden alınır.
 
 normal_user -> benign / 0
 diğer class'lar -> attack / 1
+
+True Negative (TN): It correctly guessed a real human.
+True Positive (TP): It correctly caught a fast flood attack.
+False Positive (FP): It accidentally blocked a real human who clicked too fast (False Alarm).
+False Negative (FN): An attack slipped past because it moved slowly (Missed Threat).
 """
 
 import pandas as pd

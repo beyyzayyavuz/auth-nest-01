@@ -1,5 +1,13 @@
 """
 Per-session endpoint kategori Markov chain — 4 dataset cross-trace.
+
+1. Converts each request path into a category like html, image, static, cgi, video, or other.
+2. Sorts requests inside each session by time.
+3. Looks at category-to-next-category transitions.
+4. Builds a Markov transition matrix.
+5. Adds an exit probability for session endings.
+6. Saves transition probabilities and initial session-start probabilities.
+7. Compares transition matrices across datasets.
 """
 
 import json

@@ -1,6 +1,13 @@
 """
 Master feature DataFrame'i 5-class supervised problem için hazırla.
 Mimicry holdout test-only.
+
+1. Load & Sanitize: Import master matrix; prune '_broken' and '_slowonly' noise.
+2. Regularize: Map post-attack '_recovery' phases safely back to 'normal_user'.
+3. Normalize: Group scattered labels into 5 clean, standardized classes.
+4. Holdout: Isolate 'mimicry_flood' and 'slow_http' as zero-day test sets.
+5. Split: Run a 70/15/15 stratified split on the remaining in-distribution rows.
+6. Serialize: Tag folds with a 'split' column and export to parquet format.
 """
 
 import pandas as pd

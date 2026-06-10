@@ -26,7 +26,11 @@ for name in DATASETS:
 
     print(f'\n=== IAT: {name} ===')
     df = pd.read_parquet(in_path)
+    # Keep only real within-session request gaps.
     in_session = df[~df.new_session].copy()
+    # in_session.gap_sec: selects the gap_sec column.
+    # dropna(): removes any rows where gap_sec is NaN (which happens for the first request of each session).
+    # values: converts the pandas Series to a NumPy array for easier processing.
     iat = in_session.gap_sec.dropna().values
     iat = iat[(iat > 0) & (iat < 1800)]
 

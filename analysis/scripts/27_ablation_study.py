@@ -18,6 +18,14 @@ Metrikler:
 - Test accuracy / macro-F1
 - Mimicry binary attack recall
 - Mimicry evasion rate
+
+1. Parse Input Sets: Load train, validation, test, and out-of-distribution matrices.
+2. Define Ablation Mappings: Programmatically isolate feature blocks using string patterns 
+   (e.g., dropping or isolating "iat_", "endpoint_", "global_").
+3. Retrain and Test: Iteratively train an independent Random Forest model on each isolated configuration.
+4. Track Evasion Resilience: Record accuracy, Macro-F1, and out-of-distribution mimicry metrics.
+5. Compute Degradation Delta: Subtract baseline performance from ablated scores to measure the impact.
+6. Shortcut Diagnostic: Audit the 'ua_only' slice to flag over-reliance on superficial headers.
 """
 
 import pandas as pd

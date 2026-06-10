@@ -1,6 +1,15 @@
 """
 Endpoint popularity Zipf law fit — 5 dataset cross-trace.
 Calgary path-level dahil (host info gerek değil).
+
+1. Reads each parsed dataset.
+2. Keeps only successful GET requests.
+3. Counts how often each path appears.
+4. Ranks paths from most popular to least popular.
+5. Fits a Zipf law curve to the top 1000 paths.
+6. Saves alpha and popularity shares.
+7. Saves top 100 endpoints.
+8. Creates a cross-dataset Zipf comparison plot.
 """
 
 import json

@@ -9,6 +9,12 @@ normal_user -> 0
 diğer class'lar -> 1
 
 EWMA/CUSUM parametreleri train setindeki normal_user dağılımından kalibre edilir.
+
+1. Calibrate Normalcy: Calculate the exact baseline mean ($\mu$) and variance ($\sigma$) of real users.
+2. Configure Alarms: Set internal scaling parameters ($K$ for minor deviations, $H$ for the cumulative alarm limit).
+3. Track Trends (EWMA): Calculate a moving average that heavily weights recent activity to catch sudden shifts.
+4. Accumulate Offsets (CUSUM): Continuously add up small, consecutive deviations that drift above normal.
+5. Alarm & Reset: Trigger an anomaly flag if EWMA or CUSUM benchmarks are violated, then clear memory for the next loop.
 """
 
 import pandas as pd

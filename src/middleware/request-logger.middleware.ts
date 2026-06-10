@@ -11,6 +11,7 @@ import { requestContext, RequestMetrics } from '../common/request-context/reques
 export class RequestLoggerMiddleware implements NestMiddleware {
   constructor(private logsService: LogsService) {}
 
+  // İstek kapıdan girdiği an kronometreyi ve işlemci sayaçlarını başlatan, istek bittiği an ise loglama sürecini tetikleyen ana giriş kapısıdır.
   use(req: Request, res: Response, next: NextFunction) {
     const correlationId = uuidv4();
     const tRecv = Date.now();
@@ -47,6 +48,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     });
   }
 
+  // İstek tamamlandığında, request ve response objelerinden, ayrıca middleware'in başında başlatılan kronometre ve işlemci sayaçlarından çeşitli bilgileri toplayarak LogsService aracılığıyla veritabanına kaydeder.
   private writeLog(
     req: Request,
     res: Response,
@@ -182,6 +184,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     });
   }
 
+  // İstek NGINX proxy'sinden geçtiği için gerçek kullanıcının IP adresini doğru tespit etmeye yarayan IP çözücü ve doğrulayıcı yardımcı fonksiyondur.
   private resolveClientIp(req: Request): string {
     const allowTestIpHeader = process.env.ALLOW_TEST_IP_HEADER === 'true';
 
@@ -213,6 +216,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     );
   }
 
+  // Basit bir IPv4 doğrulayıcıdır. Test IP header'ının geçerli bir IPv4 adresi içerip içermediğini kontrol etmek için kullanılır. Bu, özellikle test ve staging ortamlarında, gerçek IP adreslerini taklit etmek için x-test-client-ip header'ını kullanan senaryolarda önemlidir.
   private isValidIpv4(ip?: string): boolean {
     if (!ip) return false;
     const ipv4Regex =

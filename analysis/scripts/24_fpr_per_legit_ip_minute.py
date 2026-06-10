@@ -10,6 +10,13 @@ false positive window count / legitimate IP-minutes
 
 Burada sadece normal_user satırları kullanılır.
 Eğer normal_user window'u attack class olarak tahmin edilirse false positive sayılır.
+
+1. Train Sentinel: Fit a 200-tree multi-class Random Forest using pre-processed training vectors.
+2. Ingest Splits: Load 'dataset_split.parquet' containing your designated multi-fold splits.
+3. Isolate Clean Profiles: Filter data to keep only true 'normal_user' rows aggregated at the 'ip' level.
+4. Predict Deviations: Run the clean dataset through the model; flags are false positives if they don't say 'normal_user'.
+5. Normalize to Operational Time: Convert rows to equivalent minutes (rows * 10 seconds / 60) to compute IP-minute density.
+6. Export False Alarm Ledger: Write metrics and granular false alarm telemetry into down
 """
 
 import pandas as pd

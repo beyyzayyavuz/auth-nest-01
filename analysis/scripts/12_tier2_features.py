@@ -9,6 +9,19 @@ Per-(src_ip, 10s_window) ve per-(src_subnet_24, 10s_window) feature vektörü.
    timeout_ratio) — slowloris/slow-DoS sinyali için kritik.
 
 Output: parquet (Pandas-bound, DB'ye gerek yok şu aşamada).
+
+[ PostgreSQL ]
+  ├──> RequestLog ───> 10s Gruplama (Entropi, IAT, Maliyet) ───┐
+  └──> Connection ───> 10s Gruplama (Bağlantı/Timeout Oranı) ─┼─> [ OUTER MERGE ]
+                                                                     │
+  ┌──────────────────────────────────────────────────────────────────┘
+  ▼
+[ Veri Zenginleştirme / NaN Doldurma ] 
+  │
+  ├──> slow_http Etiketlemesi
+  │
+  ├──> [ PostgreSQL ] -> "WindowLabel" Tablosuna Yazma (Analiz/Dashboard için)
+  └──> [ Disk ]       -> tier2_features.parquet (ML Model Eğitimi için)
 """
 
 import psycopg2

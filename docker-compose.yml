@@ -4,45 +4,45 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: ddos_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: research
-      POSTGRES_PASSWORD: research
-      POSTGRES_DB: ddos_research
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U research -d ddos_research"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    image: postgres:16-alpine # Konteyner tabanlı Postgres 16 veritabanını indirir ve kurar.
+    container_name: ddos_postgres # Konteynerin adı, loglarda ve komutlarda bu isimle görünür.
+    restart: unless-stopped # Konteyner çökerse veya Docker yeniden başlatılırsa otomatik olarak yeniden başlatılır, ancak manuel olarak durdurulursa başlatılmaz.
+    environment: # Postgres'in çalışması için gerekli ortam değişkenleri:
+      POSTGRES_USER: research # Veritabanı kullanıcı adı "research" olarak ayarlanır.
+      POSTGRES_PASSWORD: research # Veritabanı şifresi "research" olarak ayarlanır.
+      POSTGRES_DB: ddos_research # Oluşturulacak varsayılan veritabanının adı "ddos_research" olarak ayarlanır.
+    ports: # Postgres'in dış dünyaya açılacağı port mapping'i: (TCP kapısını açar.)
+      - "5432:5432" # Host makinedeki 5432 portunu konteynerdeki 5432 portuna yönlendirir, böylece host'taki uygulamalar Postgres'e bağlanabilir.
+    volumes: # Verilerin kalıcı olması için volume tanımı: Postgres verileri konteyner silinse bile kaybolmaz, "postgres_data" adlı Docker volume'unda saklanır.
+      - postgres_data:/var/lib/postgresql/data # Konteyner silinse bile veritabanındaki tüm saldırı ve log kayıtlarının bilgisayarda kalmasını sağlar.
+    healthcheck: # Postgres'in sağlıklı çalışıp çalışmadığını kontrol eden sağlık kontrolü tanımı:
+      test: ["CMD-SHELL", "pg_isready -U research -d ddos_research"] # pg_isready komutu ile Postgres'in "research" kullanıcısı ve "ddos_research" veritabanı üzerinden sağlıklı olup olmadığı kontrol edilir.
+      interval: 5s # Sağlık kontrolünün her 5 saniyede bir çalışmasını sağlar.
+      timeout: 5s # Sağlık kontrolünün 5 saniye içinde tamamlanmazsa başarısız sayılmasını sağlar.
+      retries: 10 # Sağlık kontrolünün 10 kez üst üste başarısız olması durumunda konteynerin sağlıksız olarak işaretlenmesini sağlar.
 
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: ddos_nginx
-    restart: unless-stopped
-    ports:
-      - "8080:80"
+  nginx: 
+    image: nginx:1.27-alpine # Konteyner tabanlı NGINX 1.27 web sunucusunu indirir ve kurar.
+    container_name: ddos_nginx # Konteynerin adı, loglarda ve komutlarda bu isimle görünür.
+    restart: unless-stopped # Konteyner çökerse veya Docker yeniden başlatılırsa otomatik olarak yeniden başlatılır, ancak manuel olarak durdurulursa başlatılmaz.
+    ports: # NGINX'in dış dünyaya açılacağı port mapping'i: (TCP kapısını açar.)
+      - "8080:80" # Host makinedeki 8080 portunu konteynerdeki 80 portuna yönlendirir, böylece host'taki saldırganlar NGINX'e bağlanabilir.
     volumes:
-      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infra/nginx/logs:/var/log/nginx
-    extra_hosts:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Host'taki nginx.conf dosyasını konteyner içindeki /etc/nginx/nginx.conf yoluna salt okunur (ro) olarak bağlar, böylece NGINX bu konfigürasyonu kullanır.
+      - ./infra/nginx/logs:/var/log/nginx # NGINX loglarının konteyner içinde değil, host'taki infra/nginx/logs klasöründe saklanmasını sağlar, böylece loglara kolayca erişilebilir.
+    extra_hosts: # Docker konteynerinin kendi bilgisayarımızdaki (host) servislerine erişebilmesi için ekstra host tanımları:
       # Linux'ta host'a erişim için (Mac/Windows zaten otomatik)
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway" # NGINX konteynerinin, kendi bilgisayarımızda (host) çalışan NestJS'e ulaşmasını sağlayan kapı adresi.
       
   slowhttptest:
-    build: ./infra/slowhttptest
-    container_name: ddos_slowhttptest
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    profiles:
+    build: ./infra/slowhttptest # SlowHTTPTest saldırı aracının Dockerfile'ının bulunduğu dizini belirtir, böylece bu dizindeki Dockerfile kullanılarak bir imaj oluşturulur.
+    container_name: ddos_slowhttptest # Konteynerin adı, loglarda ve komutlarda bu isimle görünür.
+    extra_hosts: # Docker konteynerinin kendi bilgisayarımızdaki (host) servislerine erişebilmesi için ekstra host tanımları:
+      - "host.docker.internal:host-gateway" # SlowHTTPTest konteynerinin, kendi bilgisayarımızda (host) çalışan NGINX'e ulaşmasını sağlayan kapı adresi.
+    profiles: # Bu servis default olarak başlamaz, manuel olarak başlatılması gerekir. Böylece saldırıları istediğimiz zaman başlatabiliriz.
       - attack    # default'ta başlamasın, manuel start
 
-volumes:
+volumes: # Verilerin kalıcı olması için Docker volume tanımı. Postgres verileri bu volume'da saklanır, böylece konteyner silinse bile veriler kaybolmaz.
   postgres_data:
 
 

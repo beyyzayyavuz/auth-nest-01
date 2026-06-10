@@ -10,6 +10,20 @@ Not:
 - Mimicry holdout train'de görülmediği için binary attack detection olarak değerlendirilir:
   predicted != normal_user ise attack detected.
 - slow_http supervised RF içinde yoktur; partial_ratio/timeout_ratio > 0 kuralı ile değerlendirilir.
+
+1. Load & Encode: Pull data-splits, construct features, and align columns.
+2. Train Sentinel: Fit a 200-tree Random Forest engine on training traffic.
+3. Track Activation Time: Group logs chronologically and identify the absolute 
+   earliest window where an attack begins (attack_start).
+4. Find First Alarm: Scan forward in time to spot the earliest window where the 
+   model catches the attack (first_detection).
+5. Measure Latency: Subtract the start timestamp from the alarm timestamp to 
+   compute the exact latency in seconds and minutes.
+6. Rule-Based Fallback: Apply socket-state heuristics (timeouts, partial states) 
+   to evaluate sparse attacks excluded from machine learning loops.
+
+Inputs:  'dataset_split.parquet'
+Outputs: 'detection_latency_posthoc.csv' containing metric response times.
 """
 
 import pandas as pd

@@ -12,6 +12,13 @@ Bu script:
 - Her attack scenario için window_start sırasına göre ilk detection'ı bulur.
 - Mimicry için binary attack detection kullanır: pred != normal_user.
 - Slow HTTP için RF değil, partial/timeout rule kullanır.
+
+1. Train Sentinel: Train a multi-class Random Forest model on pre-split training data.
+2. Load Master Matrix: Read continuous chronological timelines from 'master_features.parquet'.
+3. Isolate IP Scope: Filter out network subnets to evaluate timelines purely from individual IPs.
+4. Align Timelines: Group rows by production scenarios and track their absolute start timestamps.
+5. Apply Multi-Pronged Detection: Calculate latency using strict class matching, binary zero-day flags, or connection heuristics.
+6. Export Scenario Metrics: Compute the overall scenario detection recall and write out the latency table.
 """
 
 import pandas as pd
